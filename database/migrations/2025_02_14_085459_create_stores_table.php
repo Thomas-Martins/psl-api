@@ -14,12 +14,16 @@ return new class extends Migration
         Schema::create('stores', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('address');
+            $table->string('address', 255);
             $table->string('zipcode', 5);
-            $table->string('city');
-            $table->string('phone');
+            $table->string('city', 100);
+            $table->string('phone',20);
             $table->string('email')->unique();
             $table->timestamps();
+            $table->softDeletes();
+
+            //Index for faster queries
+            $table->index(['name', 'city']);
         });
     }
 

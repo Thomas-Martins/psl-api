@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date("estimated_delivery_date");
             $table->date('departure_date')->nullable();
             $table->date('arrival_date')->nullable();
-            $table->decimal('total_price', 10, 2);
+            $table->decimal('total_price', 10, 2)->unsigned();
             $table->string('cancellation_reason')->nullable();
             $table->foreignId("carrier_id")->constrained()->onDelete('set null');
             $table->foreignId("user_id")->constrained()->onDelete('set null');
