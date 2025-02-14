@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('location')->unique();
             $table->unsignedInteger('stock')->default(0);
             $table->decimal('price', 8, 2);
-            $table->foreignId('category_id')->constrained();
-            $table->foreignId('supplier_id')->constrained();
+            $table->foreignId('category_id')->constrained()->onDelete('restrict');
+            $table->foreignId('supplier_id')->constrained()->onDelete('restrict');
             $table->timestamps();
             $table->softDeletes();
         });

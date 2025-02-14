@@ -19,11 +19,13 @@ return new class extends Migration
             $table->string('city', 100);
             $table->string('phone',20);
             $table->string('email')->unique();
+            $table->string('siret', 14)->unique();
             $table->timestamps();
             $table->softDeletes();
 
             //Index for faster queries
             $table->index(['name', 'city']);
+            $table->index('siret');
         });
     }
 
