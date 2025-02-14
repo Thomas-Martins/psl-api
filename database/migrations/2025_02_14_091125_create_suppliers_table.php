@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable(false);
             $table->string('phone',20)->nullable(false);
             $table->timestamps();
-
+            $table->softDeletes();
             //Index
             $table->index(['name', 'city']);
         });
