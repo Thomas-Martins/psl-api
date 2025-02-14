@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('carriers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone',20);
-            $table->string('address',255);
-            $table->string('zipcode', 5);
-            $table->string('city',100);
+            $table->string('name')->nullable(false);
+            $table->string('email')->unique()->nullable(false);
+            $table->string('phone',20)->nullable(false);
+            $table->string('address',255)->nullable(false);
+            $table->string('zipcode', 5)->nullable(false);
+            $table->string('city',100)->nullable(false);
             $table->timestamps();
         });
     }

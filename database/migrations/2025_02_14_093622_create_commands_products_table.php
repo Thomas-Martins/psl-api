@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('command_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('quantity')->default(1);
-            $table->decimal('freeze_price', 8, 2);
+            $table->unsignedInteger('quantity')->default(1)->nullable(false);
+            $table->decimal('freeze_price', 8, 2)->nullable(false);
             $table->timestamps();
 
 

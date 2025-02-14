@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('stores', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('address', 255);
-            $table->string('zipcode', 5);
-            $table->string('city', 100);
-            $table->string('phone',20);
-            $table->string('email')->unique();
-            $table->string('siret', 14)->unique();
+            $table->string('name')->nullable(false);
+            $table->string('address', 255)->nullable(false);
+            $table->string('zipcode', 5)->nullable(false);
+            $table->string('city', 100)->nullable(false);
+            $table->string('phone',20)->nullable(false);
+            $table->string('email')->unique()->nullable(false);
+            $table->string('siret', 14)->unique()->nullable(false);
             $table->timestamps();
             $table->softDeletes();
 
