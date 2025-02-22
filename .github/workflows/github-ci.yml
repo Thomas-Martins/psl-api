@@ -34,8 +34,8 @@ jobs:
         with:
           php-version: '8.4'
       - uses: actions/checkout@v4
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Setup environment for testing
+        run: cp .env.testing-ci .env.testing
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Generate key
@@ -46,11 +46,6 @@ jobs:
         run: |
           mkdir -p database
           touch database/database.sqlite
-      - name: Run Migrations
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-        run: php artisan migrate --force
       - name: Passport Install
         env:
           DB_CONNECTION: sqlite
