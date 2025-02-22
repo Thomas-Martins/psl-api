@@ -46,11 +46,11 @@ jobs:
         run: |
           mkdir -p database
           touch database/database.sqlite
-      - name: Passport Install
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-        run: echo "no" | php artisan passport:install --force
+#      - name: Passport Install
+#        env:
+#          DB_CONNECTION: sqlite
+#          DB_DATABASE: database/database.sqlite
+#        run: echo "no" | php artisan passport:install --force
       - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
         env:
           DB_CONNECTION: sqlite
