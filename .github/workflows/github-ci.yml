@@ -51,6 +51,8 @@ jobs:
 #          DB_CONNECTION: sqlite
 #          DB_DATABASE: database/database.sqlite
 #        run: echo "no" | php artisan passport:install --force
+      - name: Generate Passport keys
+        run: php artisan passport:keys --force
       - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
         env:
           DB_CONNECTION: sqlite
