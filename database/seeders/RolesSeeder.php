@@ -16,12 +16,14 @@ class RolesSeeder extends Seeder
     {
         $roles = [Role::ADMIN, Role::GESTIONNAIRE, Role::LOGISTICIEN, Role::CLIENT];
 
-        foreach ($roles as $role) {
-            DB::table('roles')->insert([
-                'name' => $role,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        foreach ($roles as $roleName) {
+            try {
+                Role::firstOrCreate(
+                    ['name' => $roleName]
+                );
+            } catch (\Exception $e) {
+                $this->command->error("Failed to create role {$roleName}: " . $e->getMessage());
+            }
         }
     }
 }

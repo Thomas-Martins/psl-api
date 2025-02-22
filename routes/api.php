@@ -10,9 +10,6 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Authenticated routes
 Route::group(['middleware' => ['auth:api']], function () {
-    Route::get('/test', function (Request $request) {
-        return response()->json(['message' => 'Hello World!']);
-    });
     //ADMIN
     Route::group(['middleware' => 'roles:admin'], function () {
         Route::apiResource('/users', UsersController::class);
