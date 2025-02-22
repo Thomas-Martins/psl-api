@@ -10,21 +10,22 @@ on:
       - main
       - develop
 jobs:
-#  rebase-check:
-#    name: Rebase Check
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      - name: Check if branch is rebased on develop
-#        run: |
-#          git fetch origin develop
-#          # Check if the merge base of the current branch and origin/develop is equal to the latest commit on develop
-#          if [ "$(git merge-base HEAD origin/develop)" != "$(git rev-parse origin/develop)" ]; then
-#            echo "The branch is not rebased on develop."
-#            exit 1
-#          fi
+  rebase-check:
+    name: Rebase Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check if branch is rebased on develop
+        run: |
+          git fetch origin develop
+          # Check if the merge base of the current branch and origin/develop is equal to the latest commit on develop
+          if [ "$(git merge-base HEAD origin/develop)" != "$(git rev-parse origin/develop)" ]; then
+            echo "The branch is not rebased on develop."
+            exit 1
+          fi
 
 
   tests:
@@ -46,11 +47,6 @@ jobs:
         run: |
           mkdir -p database
           touch database/database.sqlite
-#      - name: Passport Install
-#        env:
-#          DB_CONNECTION: sqlite
-#          DB_DATABASE: database/database.sqlite
-#        run: echo "no" | php artisan passport:install --force
       - name: Generate Passport keys
         run: php artisan passport:keys --force
       - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
