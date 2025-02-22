@@ -35,7 +35,7 @@ jobs:
           php-version: '8.4'
       - uses: actions/checkout@v4
       - name: Setup environment for testing
-        run: cp .env.testing-ci .env.testing
+        run: cp .env.testing-ci .env
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Generate key
