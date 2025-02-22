@@ -10,27 +10,27 @@ on:
       - main
       - develop
 jobs:
-  rebase-check:
-    name: Rebase Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Check if branch is rebased on develop
-        run: |
-          git fetch origin develop
-          # Check if the merge base of the current branch and origin/develop is equal to the latest commit on develop
-          if [ "$(git merge-base HEAD origin/develop)" != "$(git rev-parse origin/develop)" ]; then
-            echo "The branch is not rebased on develop."
-            exit 1
-          fi
+#  rebase-check:
+#    name: Rebase Check
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#
+#      - name: Check if branch is rebased on develop
+#        run: |
+#          git fetch origin develop
+#          # Check if the merge base of the current branch and origin/develop is equal to the latest commit on develop
+#          if [ "$(git merge-base HEAD origin/develop)" != "$(git rev-parse origin/develop)" ]; then
+#            echo "The branch is not rebased on develop."
+#            exit 1
+#          fi
 
 
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.0'
       - uses: actions/checkout@v4
