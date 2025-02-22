@@ -17,12 +17,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check if branch is rebased on main
+      - name: Check if branch is rebased on develop
         run: |
-          git fetch origin main
-          # Check if the merge base of the current branch and origin/main is equal to the latest commit on main
-          if [ "$(git merge-base HEAD origin/main)" != "$(git rev-parse origin/main)" ]; then
-            echo "The branch is not rebased on main."
+          git fetch origin develop
+          # Check if the merge base of the current branch and origin/develop is equal to the latest commit on develop
+          if [ "$(git merge-base HEAD origin/develop)" != "$(git rev-parse origin/develop)" ]; then
+            echo "The branch is not rebased on develop."
             exit 1
           fi
 
