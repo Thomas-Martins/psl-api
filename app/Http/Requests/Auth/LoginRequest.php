@@ -27,4 +27,11 @@ class LoginRequest extends FormRequest
             'password' => 'required|string'
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'email.exists' => 'Les identifiants sont incorrects'
+        ];
+    }
 }

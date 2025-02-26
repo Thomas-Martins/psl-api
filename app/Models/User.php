@@ -29,7 +29,6 @@ class User extends Authenticatable
         'city',
         'email_verified_at',
         'password',
-        'role_id',
     ];
 
     /**
@@ -40,6 +39,11 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'role_id',
+    ];
+
+    protected $appends = [
+        'role'
     ];
 
     /**
@@ -58,5 +62,10 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function getRoleAttribute(): string
+    {
+        return $this->role()->first()->name;
     }
 }
