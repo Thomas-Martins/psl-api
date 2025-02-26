@@ -29,6 +29,7 @@ class User extends Authenticatable
         'city',
         'email_verified_at',
         'password',
+        'role_id',
     ];
 
     /**
@@ -66,6 +67,9 @@ class User extends Authenticatable
 
     public function getRoleAttribute(): string
     {
-        return $this->role()->first()->name;
+        $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
+
+        return $role ? $role->name : '';
     }
+
 }
