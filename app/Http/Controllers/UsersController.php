@@ -24,7 +24,7 @@ class UsersController
     {
         $request->validated();
 
-        if(Auth::user()->role->name !== 'admin') {
+        if(Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -49,7 +49,7 @@ class UsersController
     {
         $request->validated();
 
-        if(Auth::user()->role->name !== 'admin') {
+        if(Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -63,7 +63,7 @@ class UsersController
      */
     public function destroy(User $user)
     {
-        if(Auth::user()->role->name !== 'admin') {
+        if(Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

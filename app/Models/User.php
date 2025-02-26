@@ -40,6 +40,11 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'role_id',
+    ];
+
+    protected $appends = [
+        'role'
     ];
 
     /**
@@ -59,4 +64,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function getRoleAttribute(): string
+    {
+        $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
+
+        return $role ? $role->name : '';
+    }
+
 }
