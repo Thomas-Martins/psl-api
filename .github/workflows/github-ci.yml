@@ -90,7 +90,7 @@ jobs:
           MERGED: ${{ github.event.pull_request.merged }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          MESSAGE=""
+
           # Si la PR a été fusionnée avec succès
           if [[ "$STATUS" == "success" ]]; then
             MESSAGE="✅ **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
@@ -104,3 +104,4 @@ jobs:
           -H "Content-Type: application/json" \
           -X POST \
           -d "{\"content\": \"$MESSAGE\"}" \
+          https://discord.com/api/v9/channels/$DISCORD_CHANNEL_ID/messages
