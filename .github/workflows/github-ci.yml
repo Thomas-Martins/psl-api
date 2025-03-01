@@ -69,10 +69,6 @@ jobs:
     name: Notify Discord
     runs-on: ubuntu-latest
     needs: [ tests ]
-    if: >
-      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true) ||
-      (github.event_name == 'pull_request' && needs.tests.result == 'success') ||
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'))
     steps:
       - name: Define message
         env:
@@ -85,17 +81,19 @@ jobs:
         run: |
           MESSAGE=""
 
+          # Condition pour une PR ouverte
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             if [[ "$STATUS" == "success" ]]; then
               MESSAGE="✅ **La PR de #$BRANCH vers /$TARGET_BRANCH est prête à être mergée !** 🎉"
             else
               MESSAGE="❌ **La PR de #$BRANCH vers /$TARGET_BRANCH n'est PAS prête à être mergée.** 🚨"
             fi
+          # Condition pour un merge réussi
           elif [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
             if [[ "$STATUS" == "success" ]]; then
               MESSAGE="🚀 **Déploiement réussi du backend sur /$TARGET_BRANCH par $AUTHOR !** 🎉"
             else
-              MESSAGE="❌ **Le merge de $BRANCH sur /$TARGET_BRANCH a échoué en raison de tests échoués.** 🚨"
+              MESSAGE="❌ **Le merge de #$BRANCH sur /$TARGET_BRANCH a échoué car les tests ont failed.** 🚨"
             fi
           fi
 
