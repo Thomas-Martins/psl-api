@@ -34,10 +34,12 @@ jobs:
           fi
 
   tests:
+    name: Run Tests
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'pull_request_target' &&
-      github.event.pull_request.merged == true
+    if: |
+      (github.event_name == 'pull_request' && success()) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
     needs: [ rebase-check ]
     steps:
       - uses: shivammathur/setup-php@v2
@@ -67,10 +69,10 @@ jobs:
   notify_discord:
     name: Notify Discord
     runs-on: ubuntu-latest
-    if: |
+    needs: [ tests ]
+    if: >
       github.event_name == 'pull_request_target' &&
       github.event.pull_request.merged == true
-    needs: [ tests ]
     steps:
       - name: Send Discord notification
         env:
