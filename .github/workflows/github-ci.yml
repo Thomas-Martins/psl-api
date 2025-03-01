@@ -84,8 +84,8 @@ jobs:
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
           AUTHOR: ${{ github.actor }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
+          TARGET_BRANCH: ${{ github.base_ref || github.ref_name }}
           STATUS: ${{ needs.tests.result }}
-          TARGET_BRANCH: ${{ github.base_ref }}
         run: |
           MESSAGE=""
 
