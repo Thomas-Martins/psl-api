@@ -78,7 +78,7 @@ jobs:
     name: Notify Discord
     runs-on: ubuntu-latest
     needs: [ tests ]
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true
+    if: always()
     steps:
       - name: Send Discord notification
         env:
@@ -88,15 +88,24 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           STATUS: ${{ job.status }}
           MERGED: ${{ github.event.pull_request.merged }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           MESSAGE=""
 
-          # Si la PR a été fusionnée avec succès
-          if [[ "$STATUS" == "success" ]]; then
-            MESSAGE="✅ **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
-          # Si le merge a échoué ou qu'il y a eu un problème
-          elif [[ "$STATUS" == "failure" ]]; then
-            MESSAGE="❌ **Échec des tests ou du rebase sur $BRANCH par $AUTHOR.** 🚨"
+          # Si c'est une PR ouverte (pas encore fusionnée)
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            if [[ "$STATUS" == "success" ]]; then
+              MESSAGE="✅ **Rebase réussi et tests réussis sur $BRANCH par $AUTHOR. La pull request est prête à être fusionnée.** 🎉"
+            elif [[ "$STATUS" == "failure" ]]; then
+              MESSAGE="❌ **Échec du rebase ou des tests sur $BRANCH par $AUTHOR. La pull request ne peut pas être fusionnée.** 🚨"
+            fi
+          # Si c'est un merge effectué
+          elif [[ "$EVENT_NAME" == "pull_request_target" && "$MERGED" == "true" ]]; then
+            if [[ "$STATUS" == "success" ]]; then
+              MESSAGE="✅ **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
+            elif [[ "$STATUS" == "failure" ]]; then
+              MESSAGE="❌ **Échec des tests ou du rebase sur $BRANCH par $AUTHOR.** 🚨"
+            fi
           fi
 
           # Envoi du message via Discord
