@@ -17,7 +17,7 @@ jobs:
   rebase-check:
     name: Rebase Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    if: github.event_name != 'pull_request_target' && (github.event_name == 'pull_request' || github.event_name == 'push')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,12 +40,10 @@ jobs:
           fi
           echo "Checking if branch is rebased on $TARGET_BRANCH"
           git fetch origin $TARGET_BRANCH
-          # Correct reference: origin/$TARGET_BRANCH
           if [ "$(git merge-base HEAD origin/$TARGET_BRANCH)" != "$(git rev-parse origin/$TARGET_BRANCH)" ]; then
             echo "The branch is not rebased on $TARGET_BRANCH."
             exit 1
           fi
-
 
   tests:
     runs-on: ubuntu-latest
@@ -79,8 +77,8 @@ jobs:
   notify_discord:
     name: Notify Discord
     runs-on: ubuntu-latest
-    needs: [ rebase-check,tests ]
-    if: always()
+    needs: [ tests ]
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && github.event.action == 'closed'
     steps:
       - name: Send Discord notification
         env:
@@ -93,10 +91,14 @@ jobs:
         run: |
           MESSAGE=""
 
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request_target" ]] && [[ "$MERGED" == "true" ]]; then
+          if [[ "$STATUS" == "skipped" ]]; then
+            MESSAGE="⏳ **Les tests ont été ignorés sur $BRANCH par $AUTHOR.** 🚨"
+
+          elif [[ "$STATUS" == "success" ]]; then
             MESSAGE="✅ **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
+
           elif [[ "$STATUS" == "failure" ]]; then
-            MESSAGE="❌ **Échec des tests sur $BRANCH !** 🚨"
+            MESSAGE="❌ **Échec des tests sur $BRANCH par $AUTHOR.** 🚨"
           fi
 
           curl -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
