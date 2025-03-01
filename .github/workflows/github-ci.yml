@@ -108,3 +108,4 @@ jobs:
                -X POST \
                -d "{\"content\": \"$MESSAGE\"}" \
                https://discord.com/api/v9/channels/$DISCORD_CHANNEL_ID/messages
+
