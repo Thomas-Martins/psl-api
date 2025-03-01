@@ -20,12 +20,24 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Set target branch variable
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TARGET_BRANCH="${{ github.base_ref }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            TARGET_BRANCH="${{ github.ref }}"
+          fi
+          echo "TARGET_BRANCH is $TARGET_BRANCH"
+          echo "TARGET_BRANCH=$TARGET_BRANCH" >> $GITHUB_ENV
       - name: Check if branch is rebased on target branch
         run: |
-          TARGET_BRANCH="${{ github.base_ref }}"
+          if [ -z "$TARGET_BRANCH" ]; then
+            echo "Target branch is not set, skipping rebase check"
+            exit 0
+          fi
           echo "Checking if branch is rebased on $TARGET_BRANCH"
           git fetch origin $TARGET_BRANCH
           if [ "$(git merge-base HEAD origin/$TARGET_BRANCH)" != "$(git rev-parse origin/$TARGET_BRANCH)" ]; then
