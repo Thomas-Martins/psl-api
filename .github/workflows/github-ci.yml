@@ -68,25 +68,27 @@ jobs:
   notify_discord:
     name: Notify Discord
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true
     needs: [ tests ]
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true || github.event_name == 'pull_request'
     steps:
-      - name: Send Discord notification
+      - name: Define message
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
           AUTHOR: ${{ github.actor }}
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
           STATUS: ${{ needs.tests.result }}
         run: |
           MESSAGE=""
 
-          if [[ "$STATUS" == "skipped" ]]; then
-            MESSAGE="⏳ **Les tests ont été ignorés sur $BRANCH par $AUTHOR.** 🚨"
-          elif [[ "$STATUS" == "success" ]]; then
-            MESSAGE="✅ **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
-          elif [[ "$STATUS" == "failure" ]]; then
-            MESSAGE="❌ **Échec des tests sur $BRANCH par $AUTHOR.** 🚨"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "$STATUS" == "success" ]]; then
+              MESSAGE="✅ **La PR vers $BRANCH est prête à être mergée !** 🎉"
+            else
+              MESSAGE="❌ **La PR vers $BRANCH n'est PAS prête à être mergée.** 🚨"
+            fi
+          elif [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+            MESSAGE="🚀 **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
           fi
 
           curl -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
@@ -94,3 +96,4 @@ jobs:
           -X POST \
           -d "{\"content\": \"$MESSAGE\"}" \
           https://discord.com/api/v9/channels/$DISCORD_CHANNEL_ID/messages
+
