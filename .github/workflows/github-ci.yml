@@ -78,7 +78,7 @@ jobs:
     name: Notify Discord
     runs-on: ubuntu-latest
     needs: [ tests ]
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && github.event.action == 'closed'
     steps:
       - name: Send Discord notification
         env:
