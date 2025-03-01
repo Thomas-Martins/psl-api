@@ -88,18 +88,15 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           STATUS: ${{ job.status }}
           MERGED: ${{ github.event.pull_request.merged }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
+          MESSAGE=""
 
-          # Si la PR a été fusionnée avec succès
-          if [[ "$STATUS" == "success" ]]; then
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request_target" ]] && [[ "$MERGED" == "true" ]]; then
             MESSAGE="✅ **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
-          # Si le merge a échoué ou qu'il y a eu un problème
           elif [[ "$STATUS" == "failure" ]]; then
-            MESSAGE="❌ **Échec des tests ou du rebase sur $BRANCH par $AUTHOR.** 🚨"
+            MESSAGE="❌ **Échec des tests sur $BRANCH !** 🚨"
           fi
 
-          # Envoi du message via Discord
           curl -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
           -H "Content-Type: application/json" \
           -X POST \
