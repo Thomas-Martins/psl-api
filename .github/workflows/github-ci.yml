@@ -1,4 +1,4 @@
-name: Backend CI
+name: PSL API CI
 
 on:
   push:
@@ -91,9 +91,9 @@ jobs:
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             if [[ "$STATUS" == "success" ]]; then
-              MESSAGE="✅ **La PR de #$BRANCH vers /$TARGET_BRANCH est prête à être mergée !** 🎉"
+              MESSAGE="✅ **La PR de #$BRANCH vers /$TARGET_BRANCH sur le backend est prête à être mergée !** 🎉"
             else
-              MESSAGE="❌ **La PR de #$BRANCH vers /$TARGET_BRANCH n'est PAS prête à être mergée.** 🚨"
+              MESSAGE="❌ **La PR de #$BRANCH vers /$TARGET_BRANCH sur le backend n'est PAS prête à être mergée.** 🚨"
             fi
           elif [[ "${{ github.event_name }}" == "push" ]]; then
             if [[ "$STATUS" == "success" ]]; then
