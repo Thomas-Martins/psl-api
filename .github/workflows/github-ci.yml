@@ -17,15 +17,23 @@ jobs:
   rebase-check:
     name: Rebase Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set target branch variable
+
+      # Si ce n'est pas une PR, on saute la vérification de rebase
+      - name: Skip rebase check if not a PR
+        if: ${{ github.event_name != 'pull_request' }}
+        run: echo "Not a PR event, skipping rebase check."
+
+      - name: Set target branch variable (PR only)
+        if: ${{ github.event_name == 'pull_request' }}
         run: echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
-      - name: Check if branch is rebased on target branch
+
+      - name: Check if branch is rebased on target branch (PR only)
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
           git fetch origin $TARGET_BRANCH
           if [ "$(git merge-base HEAD origin/$TARGET_BRANCH)" != "$(git rev-parse origin/$TARGET_BRANCH)" ]; then
@@ -70,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ tests ]
     steps:
-      - name: Define message
+      - name: Define message and notify Discord
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
@@ -81,14 +89,18 @@ jobs:
         run: |
           MESSAGE=""
 
-          # Condition pour une PR ouverte
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             if [[ "$STATUS" == "success" ]]; then
               MESSAGE="✅ **La PR de #$BRANCH vers /$TARGET_BRANCH est prête à être mergée !** 🎉"
             else
               MESSAGE="❌ **La PR de #$BRANCH vers /$TARGET_BRANCH n'est PAS prête à être mergée.** 🚨"
             fi
-          # Condition pour un merge réussi
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ "$STATUS" == "success" ]]; then
+              MESSAGE="🚀 **Déploiement réussi du backend sur /$TARGET_BRANCH par $AUTHOR !** 🎉"
+            else
+              MESSAGE="❌ **Le déploiement sur /$TARGET_BRANCH a échoué car les tests ont failed.** 🚨"
+            fi
           elif [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
             if [[ "$STATUS" == "success" ]]; then
               MESSAGE="🚀 **Déploiement réussi du backend sur /$TARGET_BRANCH par $AUTHOR !** 🎉"
@@ -98,7 +110,7 @@ jobs:
           fi
 
           curl -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
-          -H "Content-Type: application/json" \
-          -X POST \
-          -d "{\"content\": \"$MESSAGE\"}" \
-          https://discord.com/api/v9/channels/$DISCORD_CHANNEL_ID/messages
+               -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"$MESSAGE\"}" \
+               https://discord.com/api/v9/channels/$DISCORD_CHANNEL_ID/messages
