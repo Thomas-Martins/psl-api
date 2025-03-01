@@ -35,10 +35,9 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'pull_request' && success()) ||
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
-      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.merged == true
     needs: [ rebase-check ]
     steps:
       - uses: shivammathur/setup-php@v2
