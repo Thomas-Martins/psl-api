@@ -91,14 +91,6 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           MESSAGE=""
-
-          # Si c'est une PR ouverte (pas encore fusionnée)
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            if [[ "$STATUS" == "success" ]]; then
-              MESSAGE="✅ **Rebase réussi et tests réussis sur $BRANCH par $AUTHOR. La pull request est prête à être fusionnée.** 🎉"
-            elif [[ "$STATUS" == "failure" ]]; then
-              MESSAGE="❌ **Échec du rebase ou des tests sur $BRANCH par $AUTHOR. La pull request ne peut pas être fusionnée.** 🚨"
-            fi
           # Si c'est un merge effectué
           elif [[ "$EVENT_NAME" == "pull_request_target" && "$MERGED" == "true" ]]; then
             if [[ "$STATUS" == "success" ]]; then
