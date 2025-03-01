@@ -17,28 +17,16 @@ jobs:
   rebase-check:
     name: Rebase Check
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request_target' && github.event.action != 'closed' && github.ref != 'refs/heads/develop' && (github.event_name == 'pull_request' || github.event_name == 'push')
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Set target branch variable
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            TARGET_BRANCH="${{ github.base_ref }}"
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            TARGET_BRANCH="${{ github.ref }}"
-          fi
-          echo "TARGET_BRANCH is $TARGET_BRANCH"
-          echo "TARGET_BRANCH=$TARGET_BRANCH" >> $GITHUB_ENV
+        run: echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
       - name: Check if branch is rebased on target branch
         run: |
-          if [ -z "$TARGET_BRANCH" ]; then
-            echo "Target branch is not set, skipping rebase check"
-            exit 0
-          fi
-          echo "Checking if branch is rebased on $TARGET_BRANCH"
           git fetch origin $TARGET_BRANCH
           if [ "$(git merge-base HEAD origin/$TARGET_BRANCH)" != "$(git rev-parse origin/$TARGET_BRANCH)" ]; then
             echo "The branch is not rebased on $TARGET_BRANCH."
@@ -46,9 +34,13 @@ jobs:
           fi
 
   tests:
+    name: Run Tests
     runs-on: ubuntu-latest
-    needs: rebase-check
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    if: |
+      (github.event_name == 'pull_request' && success()) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
+    needs: [ rebase-check ]
     steps:
       - uses: shivammathur/setup-php@v2
         with:
@@ -78,7 +70,7 @@ jobs:
     name: Notify Discord
     runs-on: ubuntu-latest
     needs: [ tests ]
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && github.event.action == 'closed'
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true
     steps:
       - name: Send Discord notification
         env:
@@ -86,17 +78,14 @@ jobs:
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
           AUTHOR: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
-          STATUS: ${{ job.status }}
-          MERGED: ${{ github.event.pull_request.merged }}
+          STATUS: ${{ needs.tests.result }}
         run: |
           MESSAGE=""
 
           if [[ "$STATUS" == "skipped" ]]; then
             MESSAGE="⏳ **Les tests ont été ignorés sur $BRANCH par $AUTHOR.** 🚨"
-
           elif [[ "$STATUS" == "success" ]]; then
             MESSAGE="✅ **Déploiement réussi du backend sur $BRANCH par $AUTHOR !** 🎉"
-
           elif [[ "$STATUS" == "failure" ]]; then
             MESSAGE="❌ **Échec des tests sur $BRANCH par $AUTHOR.** 🚨"
           fi
