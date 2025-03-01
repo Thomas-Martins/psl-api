@@ -23,16 +23,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Si ce n'est pas une PR, on saute la vérification de rebase
       - name: Skip rebase check if not a PR
         if: ${{ github.event_name != 'pull_request' }}
         run: echo "Not a PR event, skipping rebase check."
 
-      - name: Set target branch variable (PR only)
+      - name: Set target branch variable (for PR events)
         if: ${{ github.event_name == 'pull_request' }}
         run: echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
 
-      - name: Check if branch is rebased on target branch (PR only)
+      - name: Check if branch is rebased on target branch (for PR events)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           git fetch origin $TARGET_BRANCH
@@ -76,6 +75,7 @@ jobs:
   notify_discord:
     name: Notify Discord
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request_target'
     needs: [ tests ]
     steps:
       - name: Define message and notify Discord
@@ -100,12 +100,6 @@ jobs:
               MESSAGE="🚀 **Déploiement réussi du backend sur /$TARGET_BRANCH par $AUTHOR !** 🎉"
             else
               MESSAGE="❌ **Le déploiement sur /$TARGET_BRANCH a échoué car les tests ont failed.** 🚨"
-            fi
-          elif [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
-            if [[ "$STATUS" == "success" ]]; then
-              MESSAGE="🚀 **Déploiement réussi du backend sur /$TARGET_BRANCH par $AUTHOR !** 🎉"
-            else
-              MESSAGE="❌ **Le merge de #$BRANCH sur /$TARGET_BRANCH a échoué car les tests ont failed.** 🚨"
             fi
           fi
 
