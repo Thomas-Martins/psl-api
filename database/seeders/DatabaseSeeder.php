@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         $roleIds = Role::pluck('id')->toArray();
 
         // Créer 10 utilisateurs avec un role_id aléatoire
-        User::factory(10)->create([
+        User::factory(50)->create([
             'role_id' => fn() => $roleIds[array_rand($roleIds)],
         ]);
 
