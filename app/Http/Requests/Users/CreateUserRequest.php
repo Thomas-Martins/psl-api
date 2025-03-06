@@ -26,7 +26,6 @@ class CreateUserRequest extends FormRequest
             'lastname' => ['required', 'string', 'max:100'],
             'firstname' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8'],
             'phone' => ['required', 'string', 'max:20'],
             'address' => ['required', 'string', 'max:255'],
             'zipcode' => ['required', 'string', 'max:5'],

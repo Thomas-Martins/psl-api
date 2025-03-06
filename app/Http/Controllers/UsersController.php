@@ -2,19 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PaginationHelper;
 use App\Http\Requests\Users\CreateUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class UsersController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return User::all();
+
+        if(Auth::user()->role !== Role::ADMIN) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $users = User::query();
+
+        // Application des filtres en fonction des paramètres de la requête
+        if ($request->has('onlyUsers')) {
+            $users->whereHas('role', function ($q) {
+                $q->where('name', '!=', Role::CLIENT);
+            });
+        } elseif ($request->has('onlyCustomers')) {
+            $users->whereHas('role', function ($q) {
+                $q->where('name', Role::CLIENT);
+            });
+        }
+
+        return PaginationHelper::paginateIfAsked($users);
     }
 
     /**
@@ -22,16 +44,19 @@ class UsersController
      */
     public function store(CreateUserRequest $request)
     {
-        $request->validated();
+        $data = $request->validated();
 
         if(Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $user = User::create($request->all());
+        $password = Str::random(12);
+        $data['password'] = bcrypt($password);
+
+        $user = User::create($data);
 
 
-        return response()->json($user, 201);
+        return response()->json(['user' => $user, 'password' => $password], 201);
     }
 
     /**
@@ -39,6 +64,9 @@ class UsersController
      */
     public function show(User $user)
     {
+        if (Auth::user()->role !== Role::ADMIN && Auth::user()->id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
         return $user;
     }
 

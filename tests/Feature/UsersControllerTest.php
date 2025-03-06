@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use http\Params;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,6 +24,7 @@ class UsersControllerTest extends TestCase
 
         // Create roles
         $this->adminRole = Role::create(['name' => 'admin']);
+        $this->gestionnaireRole = Role::create(['name' => 'gestionnaire']);
         $this->userRole = Role::create(['name' => 'logisticien']);
         $this->clientRole = Role::create(['name' => 'client']);
     }
@@ -29,10 +32,14 @@ class UsersControllerTest extends TestCase
     /**
      * Index method should return all users for admin.
      */
-    public function test_index_admin(): void
+    public function test_admin_index_users(): void
     {
         // Create some users
-        User::factory()->count(3)->create();
+        User::factory()->count(10)->state(new Sequence(
+            ['role_id' => $this->adminRole->id],
+            ['role_id' => $this->gestionnaireRole->id],
+            ['role_id' => $this->userRole->id]
+        ))->create();
 
         // Connect as admin
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
@@ -41,24 +48,46 @@ class UsersControllerTest extends TestCase
             ->json('GET', '/api/users');
 
         $response->assertStatus(200)
-            ->assertJsonCount(4);
+            ->assertJsonCount(11);
     }
 
     /**
      * Index method should return 401 for non-admin users.
      */
-    public function test_index_non_admin(): void
+    public function test_non_admin_index_users(): void
     {
         // Create some users
-        User::factory()->count(3)->create();
+        User::factory()->count(10)->state(new Sequence(
+            ['role_id' => $this->adminRole->id],
+            ['role_id' => $this->gestionnaireRole->id],
+            ['role_id' => $this->userRole->id]
+        ))->create();
 
         // Connect as non-admin
         $nonAdmin = User::factory()->create(['role_id' => $this->userRole->id]);
 
         $response = $this->actingAs($nonAdmin, 'api')
-            ->json('GET', '/api/users');
+            ->json('GET', '/api/users?onlyUsers');
 
         $response->assertStatus(401);
+    }
+
+    public function test_index_clients()
+    {
+        // Create some users
+        // Create some users
+        User::factory()->count(10)->state(new Sequence(
+            ['role_id' => $this->clientRole->id],
+        ))->create();
+
+        // Connect as admin
+        $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
+
+        $response = $this->actingAs($admin, 'api')
+            ->json('GET', '/api/users?onlyCustomers');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(10);
     }
 
     /**
