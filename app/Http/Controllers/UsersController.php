@@ -18,7 +18,6 @@ class UsersController
      */
     public function index(Request $request)
     {
-
         if(Auth::user()->role !== Role::ADMIN) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
@@ -30,6 +29,12 @@ class UsersController
             $users->whereHas('role', function ($q) {
                 $q->where('name', '!=', Role::CLIENT);
             });
+
+            if($request->has('role') && $request->role !== 'all') {
+                $users->whereHas('role', function ($q) use ($request) {
+                    $q->where('name', $request->role);
+                });
+            }
         } elseif ($request->has('onlyCustomers')) {
             $users->whereHas('role', function ($q) {
                 $q->where('name', Role::CLIENT);
