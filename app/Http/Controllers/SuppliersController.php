@@ -19,7 +19,7 @@ class SuppliersController
     public function index(Request $request)
     {
         if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
-            return response()->json(['message' => 'Unauthorized'], 405);
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         $suppliers = Supplier::query();

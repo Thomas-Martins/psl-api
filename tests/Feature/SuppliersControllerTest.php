@@ -76,8 +76,8 @@ class SuppliersControllerTest extends TestCase
         $response = $this->actingAs($logisticien, 'api')
             ->json('GET', '/api/suppliers');
 
-        $response->assertStatus(405);
-        $response->assertJson(['message' => 'Unauthorized']);
+        $response->assertStatus(403);
+        $response->assertJson(['message' => 'Forbidden']);
     }
 
     /**
@@ -154,8 +154,8 @@ class SuppliersControllerTest extends TestCase
         $response = $this->actingAs($client, 'api')
             ->json('POST', '/api/suppliers', $data);
 
-        $response->assertStatus(405);
-        $response->assertJson(['message' => 'Unauthorized']);
+        $response->assertStatus(403);
+        $response->assertJson(['message' => 'Forbidden']);
     }
 
     /**
@@ -200,8 +200,8 @@ class SuppliersControllerTest extends TestCase
         $response = $this->actingAs($logisticien, 'api')
             ->json('DELETE', "/api/suppliers/{$supplier->id}");
 
-        $response->assertStatus(405);
-        $response->assertJson(['message' => 'Unauthorized']);
+        $response->assertStatus(403);
+        $response->assertJson(['message' => 'Forbidden']);
 
         // L'enregistrement est toujours présent
         $this->assertDatabaseHas('suppliers', ['id' => $supplier->id]);
