@@ -19,7 +19,7 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!Auth::check()) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 405);
         }
 
         $user = Auth::user();
@@ -29,7 +29,7 @@ class RoleMiddleware
         }
 
         if (!in_array($user->role, $roles)) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 405);
         }
 
         return $next($request);

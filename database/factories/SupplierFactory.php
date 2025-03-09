@@ -29,7 +29,6 @@ class SupplierFactory extends Factory
             'contact_person_lastname' => fake()->lastName(),
             'contact_person_phone' => fake()->phoneNumber(),
             'contact_person_email' => fake()->unique()->safeEmail(),
-            'note' => fake()->sentence(),
         ];
     }
 }
