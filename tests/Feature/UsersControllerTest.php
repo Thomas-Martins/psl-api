@@ -69,7 +69,7 @@ class UsersControllerTest extends TestCase
         $response = $this->actingAs($nonAdmin, 'api')
             ->json('GET', '/api/users?onlyUsers');
 
-        $response->assertStatus(401);
+        $response->assertStatus(403);
     }
 
     public function test_index_clients()
@@ -122,7 +122,7 @@ class UsersControllerTest extends TestCase
         $response = $this->actingAs($nonAdmin, 'api')
             ->json('GET', "/api/users/{$user->id}");
 
-        $response->assertStatus(401);
+        $response->assertStatus(403);
     }
 
     /**
@@ -171,7 +171,7 @@ class UsersControllerTest extends TestCase
                 'zipcode' => '75000',
             ]);
 
-        $response->assertStatus(401);
+        $response->assertStatus(403);
     }
 
     /**
@@ -227,7 +227,7 @@ class UsersControllerTest extends TestCase
                 'zipcode' => '75000',
             ]);
 
-        $response->assertStatus(401);
+        $response->assertStatus(403);
     }
 
     /**
@@ -263,7 +263,7 @@ class UsersControllerTest extends TestCase
         $response = $this->actingAs($nonAdmin, 'api')
             ->json('DELETE',"/api/users/{$user->id}");
 
-        $response->assertStatus(401);
+        $response->assertStatus(403);
     }
 
 }
