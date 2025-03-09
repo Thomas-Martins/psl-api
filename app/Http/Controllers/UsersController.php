@@ -19,7 +19,7 @@ class UsersController
     public function index(Request $request)
     {
         if(Auth::user()->role !== Role::ADMIN) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 405);
         }
 
         $users = User::query();
@@ -52,7 +52,7 @@ class UsersController
         $data = $request->validated();
 
         if(Auth::user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 405);
         }
 
         $password = Str::random(12);
@@ -70,7 +70,7 @@ class UsersController
     public function show(User $user)
     {
         if (Auth::user()->role !== Role::ADMIN && Auth::user()->id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 405);
         }
         return $user;
     }
@@ -83,7 +83,7 @@ class UsersController
         $request->validated();
 
         if(Auth::user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 405);
         }
 
         $user->update($request->all());
@@ -97,7 +97,7 @@ class UsersController
     public function destroy(User $user)
     {
         if(Auth::user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 405);
         }
 
         $user->delete();

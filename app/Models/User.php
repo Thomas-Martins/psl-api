@@ -44,6 +44,7 @@ class User extends Authenticatable
     ];
 
     protected $appends = [
+        'identity',
         'role'
     ];
 
@@ -70,6 +71,11 @@ class User extends Authenticatable
         $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
 
         return $role ? $role->name : '';
+    }
+
+    public function getIdentityAttribute(): string
+    {
+        return $this->firstname . ' ' . $this->lastname;
     }
 
 }

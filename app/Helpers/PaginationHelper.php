@@ -2,15 +2,19 @@
 
 namespace App\Helpers;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+
 class PaginationHelper
 {
     /**
      * Si le paramètre "paginate" est présent dans la requête,
      * applique la pagination. Sinon, retourne tous les résultats.
      *
-     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param Builder|\Illuminate\Database\Query\Builder $query
      * @param int $max Limite maximale pour le cas où le paramètre limit serait négatif
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Support\Collection
+     * @return LengthAwarePaginator|Collection
      */
     public static function paginateIfAsked($query, $max = 200)
     {
@@ -23,13 +27,30 @@ class PaginationHelper
     /**
      * Applique la pagination en tenant compte des paramètres de tri et de limite.
      *
-     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param Builder|\Illuminate\Database\Query\Builder $query
      * @param int $max Limite maximale si le paramètre "limit" est négatif
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return LengthAwarePaginator
      */
     public static function paginate($query, $max = 200)
     {
-        $query = $query->orderBy(request('orderBy', 'id'), request('orderWay', 'DESC'));
+        $order_by = request()->has('orderBy')
+            ? request('orderBy')
+            : request('order_by', 'id');
+
+        $order_way = request()->has('orderWay')
+            ? strtoupper(request('orderWay'))
+            : strtoupper(request('order_way', 'DESC'));
+
+        if (!in_array($order_way, ['ASC', 'DESC'])) {
+            $order_way = 'DESC';
+        }
+
+        if ($order_by === 'identity') {
+            $query = $query->orderBy('firstname', $order_way)
+                ->orderBy('lastname', $order_way);
+        } else {
+            $query = $query->orderBy($order_by, $order_way);
+        }
 
         $limit = (int) request('limit', 10);
         if ($limit < 0) {
@@ -38,4 +59,5 @@ class PaginationHelper
 
         return $query->paginate($limit);
     }
+
 }

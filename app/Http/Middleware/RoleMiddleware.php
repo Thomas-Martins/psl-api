@@ -21,11 +21,18 @@ class RoleMiddleware
         if (!Auth::check()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
+
         $user = Auth::user();
+
+        if (count($roles) === 1) {
+            $roles = explode(',', $roles[0]);
+        }
 
         if (!in_array($user->role, $roles)) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
+
         return $next($request);
     }
+
 }
