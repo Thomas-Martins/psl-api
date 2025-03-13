@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CarriersController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\SuppliersController;
 use App\Http\Controllers\UsersController;
@@ -24,5 +25,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::group(['middleware' => ['roles:admin,gestionnaire']], function () {
         //SUPPLIERS
         Route::apiResource('/suppliers', SuppliersController::class);
+        //CARRIERS
+        Route::apiResource('/carriers', CarriersController::class);
     });
 });

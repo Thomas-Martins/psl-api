@@ -21,20 +21,17 @@ class SuppliersControllerTest extends TestCase
     {
         parent::setUp();
 
-        // Création des rôles (similaire à UsersControllerTest)
-        $this->adminRole = Role::create(['name' => 'admin']);
+        // Création des rôles
+        $this->adminRole        = Role::create(['name' => 'admin']);
         $this->gestionnaireRole = Role::create(['name' => 'gestionnaire']);
-        $this->logisticienRole = Role::create(['name' => 'logisticien']);
-        $this->clientRole = Role::create(['name' => 'client']);
+        $this->logisticienRole  = Role::create(['name' => 'logisticien']);
+        $this->clientRole       = Role::create(['name' => 'client']);
     }
 
-    /* -------------------------------------------------------------------------
-       INDEX
-    ------------------------------------------------------------------------- */
     /**
-     * Test l'index des fournisseurs (index) en tant qu'admin : doit retourner 200.
+     * Test index des suppliers en tant qu'admin. Doit retourner 200.
      */
-    public function test_index_suppliers_as_admin(): void
+    public function test_admin_index_suppliers(): void
     {
         Supplier::factory()->count(5)->create();
 
@@ -48,9 +45,9 @@ class SuppliersControllerTest extends TestCase
     }
 
     /**
-     * Test l'index des fournisseurs (index) en tant que gestionnaire : doit retourner 200.
+     * Test index des suppliers en tant que gestionnaire. Doit retourner 200.
      */
-    public function test_index_suppliers_as_gestionnaire(): void
+    public function test_gestionnaire_index_suppliers(): void
     {
         Supplier::factory()->count(5)->create();
 
@@ -64,13 +61,12 @@ class SuppliersControllerTest extends TestCase
     }
 
     /**
-     * Test l'index des fournisseurs (index) en tant que rôle non autorisé : doit retourner 405.
+     * Test index des suppliers en tant que rôle non autorisé (ici logisticien). Doit retourner 403.
      */
     public function test_index_suppliers_as_unauthorized_role(): void
     {
         Supplier::factory()->count(5)->create();
 
-        // Par exemple, un logisticien
         $logisticien = User::factory()->create(['role_id' => $this->logisticienRole->id]);
 
         $response = $this->actingAs($logisticien, 'api')
@@ -81,9 +77,9 @@ class SuppliersControllerTest extends TestCase
     }
 
     /**
-     * Test la création d'un fournisseur (store) en tant qu'admin : doit retourner 201.
+     * Test création d'un supplier en tant qu'admin. Doit retourner 201.
      */
-    public function test_store_supplier_as_admin(): void
+    public function test_admin_store_supplier(): void
     {
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
 
@@ -107,7 +103,6 @@ class SuppliersControllerTest extends TestCase
         $response->assertStatus(201);
         $response->assertJson(['message' => 'Supplier created']);
 
-        // Vérifie en base de données
         $this->assertDatabaseHas('suppliers', [
             'name'  => 'ACME Inc.',
             'email' => 'acme@example.com',
@@ -115,9 +110,9 @@ class SuppliersControllerTest extends TestCase
     }
 
     /**
-     * Test la création d'un fournisseur (store) en tant que gestionnaire : doit retourner 201.
+     * Test création d'un supplier en tant que gestionnaire. Doit retourner 201.
      */
-    public function test_store_supplier_as_gestionnaire(): void
+    public function test_gestionnaire_store_supplier(): void
     {
         $gestionnaire = User::factory()->create(['role_id' => $this->gestionnaireRole->id]);
 
@@ -143,7 +138,7 @@ class SuppliersControllerTest extends TestCase
     }
 
     /**
-     * Test la création d'un fournisseur (store) en tant que rôle non autorisé : doit retourner 405.
+     * Test création d'un supplier en tant que rôle non autorisé (ici client). Doit retourner 403.
      */
     public function test_store_supplier_as_unauthorized_role(): void
     {
@@ -159,9 +154,133 @@ class SuppliersControllerTest extends TestCase
     }
 
     /**
-     * Test la suppression d'un fournisseur (destroy) en tant qu'admin : doit retourner 204.
+     * Test affichage d'un supplier (show) en tant qu'admin. Doit retourner 200.
      */
-    public function test_destroy_supplier_as_admin(): void
+    public function test_admin_show_supplier(): void
+    {
+        $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
+        $supplier = Supplier::factory()->create();
+
+        $response = $this->actingAs($admin, 'api')
+            ->json('GET', "/api/suppliers/{$supplier->id}");
+
+        $response->assertStatus(200);
+        $response->assertJson($supplier->toArray());
+    }
+
+    /**
+     * Test affichage d'un supplier (show) en tant que gestionnaire. Doit retourner 200.
+     */
+    public function test_gestionnaire_show_supplier(): void
+    {
+        $gestionnaire = User::factory()->create(['role_id' => $this->gestionnaireRole->id]);
+        $supplier = Supplier::factory()->create();
+
+        $response = $this->actingAs($gestionnaire, 'api')
+            ->json('GET', "/api/suppliers/{$supplier->id}");
+
+        $response->assertStatus(200);
+        $response->assertJson($supplier->toArray());
+    }
+
+    /**
+     * Test affichage d'un supplier (show) en tant que rôle non autorisé (ici logisticien). Doit retourner 403.
+     */
+    public function test_users_show_supplier(): void
+    {
+        $logisticien = User::factory()->create(['role_id' => $this->logisticienRole->id]);
+        $supplier = Supplier::factory()->create();
+
+        $response = $this->actingAs($logisticien, 'api')
+            ->json('GET', "/api/suppliers/{$supplier->id}");
+
+        $response->assertStatus(403);
+        $response->assertJson(['message' => 'Forbidden']);
+    }
+
+    /**
+     * Test mise à jour (update) d'un supplier en tant qu'admin. Doit retourner 200.
+     */
+    public function test_admin_update_supplier(): void
+    {
+        $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
+        $supplier = Supplier::factory()->create();
+
+        $updateData = [
+            'name'  => 'Supplier Updated',
+            'email' => 'updated@supplier.com'
+        ];
+
+        $response = $this->actingAs($admin, 'api')
+            ->json('PUT', "/api/suppliers/{$supplier->id}", $updateData);
+
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'Supplier updated']);
+
+        $this->assertDatabaseHas('suppliers', [
+            'id'    => $supplier->id,
+            'name'  => 'Supplier Updated',
+            'email' => 'updated@supplier.com'
+        ]);
+    }
+
+    /**
+     * Test mise à jour (update) d'un supplier en tant que gestionnaire. Doit retourner 200.
+     */
+    public function test_gestionnaire_update_supplier(): void
+    {
+        $gestionnaire = User::factory()->create(['role_id' => $this->gestionnaireRole->id]);
+        $supplier = Supplier::factory()->create();
+
+        $updateData = [
+            'name'  => 'Gestionnaire Updated',
+            'email' => 'gestionnaire@supplier.com'
+        ];
+
+        $response = $this->actingAs($gestionnaire, 'api')
+            ->json('PUT', "/api/suppliers/{$supplier->id}", $updateData);
+
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'Supplier updated']);
+
+        $this->assertDatabaseHas('suppliers', [
+            'id'    => $supplier->id,
+            'name'  => 'Gestionnaire Updated',
+            'email' => 'gestionnaire@supplier.com'
+        ]);
+    }
+
+    /**
+     * Test mise à jour (update) d'un supplier en tant que rôle non autorisé (ici logisticien). Doit retourner 403.
+     */
+    public function test_users_update_supplier(): void
+    {
+        $logisticien = User::factory()->create(['role_id' => $this->logisticienRole->id]);
+        $supplier = Supplier::factory()->create();
+
+        $updateData = [
+            'name'  => 'NonAuthorized Updated',
+            'email' => 'nonauthorized@supplier.com'
+        ];
+
+        $response = $this->actingAs($logisticien, 'api')
+            ->json('PUT', "/api/suppliers/{$supplier->id}", $updateData);
+
+        $response->assertStatus(403);
+        $response->assertJson(['message' => 'Forbidden']);
+
+        // Vérifie que la base de données n’a pas été modifiée
+        $this->assertDatabaseHas('suppliers', [
+            'id'    => $supplier->id,
+            'name'  => $supplier->name,  // inchangé
+            'email' => $supplier->email, // inchangé
+        ]);
+    }
+
+    /**
+     * Test suppression (destroy) d'un supplier en tant qu'admin. Doit retourner 204.
+     */
+    public function test_admin_destroy_supplier(): void
     {
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
         $supplier = Supplier::factory()->create();
@@ -170,14 +289,13 @@ class SuppliersControllerTest extends TestCase
             ->json('DELETE', "/api/suppliers/{$supplier->id}");
 
         $response->assertStatus(204);
-        // Vérifie que le supplier n'est plus en base
         $this->assertDatabaseMissing('suppliers', ['id' => $supplier->id]);
     }
 
     /**
-     * Test la suppression d'un fournisseur (destroy) en tant que gestionnaire : doit retourner 204.
+     * Test suppression (destroy) d'un supplier en tant que gestionnaire. Doit retourner 204.
      */
-    public function test_destroy_supplier_as_gestionnaire(): void
+    public function test_gestionnaire_destroy_supplier(): void
     {
         $gestionnaire = User::factory()->create(['role_id' => $this->gestionnaireRole->id]);
         $supplier = Supplier::factory()->create();
@@ -190,7 +308,7 @@ class SuppliersControllerTest extends TestCase
     }
 
     /**
-     * Test la suppression d'un fournisseur (destroy) en tant que rôle non autorisé : doit retourner 405.
+     * Test suppression (destroy) d'un supplier en tant que rôle non autorisé (ici logisticien). Doit retourner 403.
      */
     public function test_destroy_supplier_as_unauthorized_role(): void
     {
@@ -203,7 +321,6 @@ class SuppliersControllerTest extends TestCase
         $response->assertStatus(403);
         $response->assertJson(['message' => 'Forbidden']);
 
-        // L'enregistrement est toujours présent
         $this->assertDatabaseHas('suppliers', ['id' => $supplier->id]);
     }
 }
