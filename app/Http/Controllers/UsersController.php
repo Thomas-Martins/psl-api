@@ -18,13 +18,8 @@ class UsersController
      */
     public function index(Request $request)
     {
-        if(Auth::user()->role !== Role::ADMIN) {
-            return response()->json(['message' => 'Unauthorized'], 405);
-        }
-
         $users = User::query();
 
-        // Application des filtres en fonction des paramètres de la requête
         if ($request->has('onlyUsers')) {
             $users->whereHas('role', function ($q) {
                 $q->where('name', '!=', Role::CLIENT);
@@ -38,6 +33,16 @@ class UsersController
         } elseif ($request->has('onlyCustomers')) {
             $users->whereHas('role', function ($q) {
                 $q->where('name', Role::CLIENT);
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+
+            $users->where(function ($query) use ($search) {
+                $query->where('firstname', 'like', "%{$search}%")
+                    ->orWhere('lastname', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -102,6 +107,6 @@ class UsersController
 
         $user->delete();
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

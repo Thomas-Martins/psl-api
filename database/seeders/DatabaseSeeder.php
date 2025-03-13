@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesSeeder::class);
         $this->call(PersonalAccessClientSeeder::class);
         $this->call(SupplierSeeder::class);
+        $this->call(CarriersSeeder::class);
 
         // Récupérer tous les IDs des rôles existants
         $roleIds = Role::pluck('id')->toArray();

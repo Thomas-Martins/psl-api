@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
-use http\Params;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

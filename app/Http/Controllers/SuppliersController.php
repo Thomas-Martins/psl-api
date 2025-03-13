@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\Suppliers\CreateSupplierRequest;
+use App\Http\Requests\Suppliers\UpdateSupplierRequest;
 use App\Models\Role;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
@@ -18,11 +19,16 @@ class SuppliersController
      */
     public function index(Request $request)
     {
-        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
         $suppliers = Supplier::query();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+
+            $suppliers->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
 
         return PaginationHelper::paginateIfAsked($suppliers);
     }
@@ -46,18 +52,22 @@ class SuppliersController
     /**
      * Display the specified resource.
      */
-    public function show(Supplier $supplier)
+    public function show(Supplier $supplier): Supplier
     {
-        //
+        return $supplier;
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Supplier $supplier)
+    public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
-        //
+        $data = $request->validated();
+
+        $supplier->update($data);
+
+        return response()->json(['message' => 'Supplier updated', 'supplier' => $supplier], 200);
     }
 
     /**
@@ -71,6 +81,6 @@ class SuppliersController
 
         $supplier->delete();
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

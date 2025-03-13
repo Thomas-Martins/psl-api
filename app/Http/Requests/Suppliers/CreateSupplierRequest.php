@@ -23,17 +23,17 @@ class CreateSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'unique:suppliers'],
+            'email' => ['required', 'email', 'max:255', 'unique:suppliers'],
             'phone' => ['required', 'string', 'max:20'],
             'address' => ['required', 'string', 'max:255'],
             'zipcode' => ['required', 'string', 'max:5'],
             'city' => ['required', 'string', 'max:255'],
             'country' => ['required', 'string', 'max:255'],
-            'contact_person_firstname' => ['required', 'string', 'max:255'],
-            'contact_person_lastname' => ['required', 'string', 'max:255'],
-            'contact_person_phone' => ['required', 'string', 'max:20'],
-            'contact_person_email' => ['required', 'email', 'max:255'],
+            'contact_person_firstname' => ['nullable', 'string', 'max:50'],
+            'contact_person_lastname' => ['nullable', 'string', 'max:50'],
+            'contact_person_phone' => ['nullable', 'string', 'max:20'],
+            'contact_person_email' => ['nullable', 'email', 'max:255'],
         ];
     }
 }
