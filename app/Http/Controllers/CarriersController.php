@@ -70,6 +70,6 @@ class CarriersController
     public function destroy(Carrier $carrier)
     {
         $carrier->delete();
-        return response()->json(['message' => 'Carrier deleted'], 204);
+        return response()->noContent();
     }
 }

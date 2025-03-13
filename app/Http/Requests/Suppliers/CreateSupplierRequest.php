@@ -30,10 +30,10 @@ class CreateSupplierRequest extends FormRequest
             'zipcode' => ['required', 'string', 'max:5'],
             'city' => ['required', 'string', 'max:255'],
             'country' => ['required', 'string', 'max:255'],
-            'contact_person_firstname' => ['required', 'string', 'max:50'],
-            'contact_person_lastname' => ['required', 'string', 'max:50'],
-            'contact_person_phone' => ['required', 'string', 'max:20'],
-            'contact_person_email' => ['required', 'email', 'max:255'],
+            'contact_person_firstname' => ['nullable', 'string', 'max:50'],
+            'contact_person_lastname' => ['nullable', 'string', 'max:50'],
+            'contact_person_phone' => ['nullable', 'string', 'max:20'],
+            'contact_person_email' => ['nullable', 'email', 'max:255'],
         ];
     }
 }

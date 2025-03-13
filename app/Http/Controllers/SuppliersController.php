@@ -81,6 +81,6 @@ class SuppliersController
 
         $supplier->delete();
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }
