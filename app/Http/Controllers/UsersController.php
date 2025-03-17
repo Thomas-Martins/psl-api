@@ -34,6 +34,8 @@ class UsersController
             $users->whereHas('role', function ($q) {
                 $q->where('name', Role::CLIENT);
             });
+
+            $users->with('store');
         }
 
         if ($request->filled('search')) {

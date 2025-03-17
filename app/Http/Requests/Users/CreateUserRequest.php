@@ -31,6 +31,7 @@ class CreateUserRequest extends FormRequest
             'zipcode' => ['required', 'string', 'max:5'],
             'city' => ['required', 'string', 'max:100'],
             'role_id' => ['required', 'integer', 'exists:roles,id'],
+            'store_id' => ['nullable', 'integer', 'exists:stores,id'],
         ];
     }
 }
