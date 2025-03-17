@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CarriersController;
 use App\Http\Controllers\RolesController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SuppliersController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -27,5 +28,7 @@ Route::group(['middleware' => ['auth:api']], function () {
         Route::apiResource('/suppliers', SuppliersController::class);
         //CARRIERS
         Route::apiResource('/carriers', CarriersController::class);
+        //STORES
+        Route::apiResource('/stores', StoreController::class);
     });
 });
