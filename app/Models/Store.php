@@ -18,7 +18,7 @@ class Store extends Model
         'siret',
     ];
 
-    public function users()
+    public function customers()
     {
         return $this->hasMany(User::class);
     }
