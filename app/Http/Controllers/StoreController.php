@@ -58,9 +58,9 @@ class StoreController
      */
     public function update(UpdateStoreRequest $request, Store $store)
     {
-        $request->validated();
+        $data = $request->validated();
 
-        $store->update($request->all());
+        $store->update($data);
 
         return response()->json(['message' => 'Store updated', 'store' => $store]);
     }
