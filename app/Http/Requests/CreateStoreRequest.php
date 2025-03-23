@@ -29,7 +29,7 @@ class CreateStoreRequest extends FormRequest
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'zipcode' => 'required|string|max:5',
-            'siret' => 'required|string|max:14',
+            'siret' => 'required|string|max:14|unique:stores',
         ];
     }
 }
