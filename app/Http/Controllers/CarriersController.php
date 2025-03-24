@@ -46,7 +46,7 @@ class CarriersController
         }
 
         try {
-            if (!is_null($data['image'])) {
+            if (isset($data['image']) && !is_null($data['image'])) {
                 $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'carriers', 'carrier');
             }
 
