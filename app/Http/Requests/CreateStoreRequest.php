@@ -30,6 +30,7 @@ class CreateStoreRequest extends FormRequest
             'city' => 'required|string|max:255',
             'zipcode' => 'required|string|max:5',
             'siret' => 'required|string|max:14|unique:stores',
+            'image' => 'nullable|image|max:2048|mimes:jpeg,jpg,png',
         ];
     }
 }

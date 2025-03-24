@@ -7,8 +7,10 @@ use App\Http\Requests\Suppliers\CreateSupplierRequest;
 use App\Http\Requests\Suppliers\UpdateSupplierRequest;
 use App\Models\Role;
 use App\Models\Supplier;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class SuppliersController
 {
@@ -44,7 +46,22 @@ class SuppliersController
             return response()->json(['message' => 'Unauthorized'], 405);
         }
 
-        Supplier::create($data);
+        try {
+            if (isset($data['image']) && !is_null($data['image'])) {
+                $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'suppliers', 'supplier');
+            }
+
+            Supplier::create($data);
+
+        }catch (\Exception $e) {
+
+            if(isset($data['image_path'])) {
+                Storage::disk('public')->delete($data['image_path']);
+            }
+
+            return response()->json(['message' => 'Erreur lors de la création du fournisseur'], 500);
+        }
+
 
         return response()->json(['message' => 'Supplier created'], 201);
     }

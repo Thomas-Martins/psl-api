@@ -32,6 +32,7 @@ class CreateUserRequest extends FormRequest
             'city' => ['required', 'string', 'max:100'],
             'role_id' => ['required', 'integer', 'exists:roles,id'],
             'store_id' => ['nullable', 'integer', 'exists:stores,id'],
+            'image' => ['nullable', 'image', 'max:2048', 'mimes:jpeg,jpg,png'],
         ];
     }
 }

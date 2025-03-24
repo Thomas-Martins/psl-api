@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'store_id',
+        'image_path',
     ];
 
     /**
@@ -46,7 +48,8 @@ class User extends Authenticatable
 
     protected $appends = [
         'identity',
-        'role'
+        'role',
+        'image_url',
     ];
 
     /**
@@ -82,6 +85,11 @@ class User extends Authenticatable
     public function getIdentityAttribute(): string
     {
         return $this->firstname . ' ' . $this->lastname;
+    }
+
+    public function getImageUrlAttribute(): string
+    {
+        return $this->image_path ? Storage::disk('public')->url($this->image_path) : '';
     }
 
 }

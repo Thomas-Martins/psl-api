@@ -7,8 +7,10 @@ use App\Http\Requests\Users\CreateUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UsersController
@@ -65,11 +67,26 @@ class UsersController
         $password = Str::random(12);
         $data['password'] = bcrypt($password);
 
-        $user = User::create($data);
+        try {
+            if (isset($data['image']) && !is_null($data['image'])) {
+                $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'users', 'user');
+            }
 
+            // Création de l'utilisateur
+            $user = User::create($data);
+
+        } catch (\Exception $e) {
+            // En cas d'erreur, si une image a été uploadée, la supprimer du disque public
+            if (isset($data['image_path'])) {
+                Storage::disk('public')->delete($data['image_path']);
+            }
+
+            return response()->json(['message' => 'Erreur lors de la création de l\'utilisateur'], 500);
+        }
 
         return response()->json(['user' => $user, 'password' => $password], 201);
     }
+
 
     /**
      * Display the specified resource.
