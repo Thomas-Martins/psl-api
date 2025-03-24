@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\CreateStoreRequest;
 use App\Http\Requests\UpdateStoreRequest;
+use App\Models\Role;
 use App\Models\Store;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class StoreController
 {
@@ -40,7 +44,25 @@ class StoreController
     {
         $data = $request->validated();
 
-        $store = Store::create($data);
+        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json(['message' => 'Unauthorized'], 405);
+        }
+
+        try {
+            if (!is_null($data['image'])) {
+                $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'stores', 'store');
+            }
+
+            $store = Store::create($data);
+
+        }catch (\Exception $exception){
+
+            if (isset($data['image_path'])) {
+                Storage::disk('public')->delete($data['image_path']);
+            }
+
+            return response()->json(['message' => 'Erreur lors de la création du point de vente'], 500);
+        }
 
         return response()->json(['message' => 'Store created', 'carrier' => $store], 201);
     }

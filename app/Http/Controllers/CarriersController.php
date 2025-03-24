@@ -6,7 +6,11 @@ use App\Helpers\PaginationHelper;
 use App\Http\Requests\Carriers\CreateCarriersRequest;
 use App\Http\Requests\Carriers\UpdateCarrierRequest;
 use App\Models\Carrier;
+use App\Models\Role;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class CarriersController
 {
@@ -37,7 +41,25 @@ class CarriersController
     {
         $data = $request->validated();
 
-        $carrier = Carrier::create($data);
+        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json(['message' => 'Unauthorized'], 405);
+        }
+
+        try {
+            if (!is_null($data['image'])) {
+                $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'carriers', 'carrier');
+            }
+
+            $carrier = Carrier::create($data);
+
+        }catch (\Exception $e) {
+            if (isset($data['image_path'])) {
+                Storage::disk('public')->delete($data['image_path']);
+            }
+
+            return response()->json(['message' => 'Erreur lors de la création du transporteur'], 500);
+        }
+
 
         return response()->json(['message' => 'Carrier created', 'carrier' => $carrier], 201);
     }

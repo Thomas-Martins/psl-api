@@ -34,6 +34,7 @@ class CreateSupplierRequest extends FormRequest
             'contact_person_lastname' => ['nullable', 'string', 'max:50'],
             'contact_person_phone' => ['nullable', 'string', 'max:20'],
             'contact_person_email' => ['nullable', 'email', 'max:255'],
+            'image' => ['nullable', 'image', 'max:2048', 'mimes:jpeg,jpg,png'],
         ];
     }
 }
