@@ -269,4 +269,21 @@ class CategoriesControllerTest extends TestCase
         $response->assertStatus(403);
         $response->assertJson(['message' => 'Forbidden']);
     }
+
+    public function test_store_categories_validation_errors()
+    {
+        $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
+
+        // Test with empty data
+        $response = $this->actingAs($admin, 'api')->json('POST', '/api/categories', []);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['name']);
+
+        // Test with too long name
+        $response = $this->actingAs($admin, 'api')->json('POST', '/api/categories', [
+            'name' => str_repeat('a', 256), // Assuming max length is 255
+        ]);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['name']);
+    }
 }

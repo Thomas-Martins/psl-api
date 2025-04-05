@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\CreateCategoryRequest;
 use App\Models\Category;
+use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CategoriesController
 {
@@ -25,6 +27,11 @@ class CategoriesController
     public function store(CreateCategoryRequest $request)
     {
         $data = $request->validated();
+
+        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json(['message' => 'Unauthorized'], 405);
+        }
+
 
         try {
             $category = Category::create($data);
@@ -50,6 +57,10 @@ class CategoriesController
     {
         $data = $request->validated();
 
+        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json(['message' => 'Unauthorized'], 405);
+        }
+
         try {
             $category->update($data);
         } catch (\Exception $e) {
@@ -64,6 +75,10 @@ class CategoriesController
      */
     public function destroy(Category $category)
     {
+        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json(['message' => 'Unauthorized'], 405);
+        }
+
         try {
             $category->delete();
         } catch (\Exception $e) {
