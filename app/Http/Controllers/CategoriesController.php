@@ -29,7 +29,7 @@ class CategoriesController
         $data = $request->validated();
 
         if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
-            return response()->json(['message' => 'Unauthorized'], 405);
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
 
@@ -58,7 +58,7 @@ class CategoriesController
         $data = $request->validated();
 
         if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
-            return response()->json(['message' => 'Unauthorized'], 405);
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         try {
@@ -76,7 +76,7 @@ class CategoriesController
     public function destroy(Category $category)
     {
         if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
-            return response()->json(['message' => 'Unauthorized'], 405);
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         try {
