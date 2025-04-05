@@ -25,7 +25,7 @@ class ProductFactory extends Factory
             'reference' => $this->faker->unique()->bothify('REF-####'),
             'location' => $this->faker->unique()->bothify('LOC-####'),
             'price' => $this->faker->randomFloat(2, 10, 1000),
-            'stock' => $this->faker->randomFloat(0, 100),
+            'stock' => $this->faker->numberBetween(0, 100),
             'category_id' => Category::factory(),
             'supplier_id' => Supplier::factory(),
         ];
