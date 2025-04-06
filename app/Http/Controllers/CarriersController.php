@@ -46,16 +46,9 @@ class CarriersController
         }
 
         try {
-            if (isset($data['image']) && !is_null($data['image'])) {
-                $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'carriers', 'carrier');
-            }
-
             $carrier = Carrier::create($data);
 
         }catch (\Exception $e) {
-            if (isset($data['image_path'])) {
-                Storage::disk('public')->delete($data['image_path']);
-            }
 
             return response()->json(['message' => 'Erreur lors de la création du transporteur'], 500);
         }

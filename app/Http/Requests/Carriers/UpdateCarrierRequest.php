@@ -4,6 +4,7 @@ namespace App\Http\Requests\Carriers;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCarrierRequest extends FormRequest
 {
@@ -23,8 +24,16 @@ class UpdateCarrierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [ 'string', 'max:255', 'unique:carriers'],
-            'email' => [ 'email', 'max:255', 'unique:carriers'],
+            'name' => [
+                'string',
+                'max:255',
+                Rule::unique('carriers')->ignore($this->route('carrier')->id)
+            ],
+            'email' => [
+                'email',
+                'max:255',
+                Rule::unique('carriers')->ignore($this->route('carrier')->id)
+            ],
             'phone' => [ 'string', 'max:20'],
             'address' => [ 'string', 'max:255'],
             'zipcode' => [ 'string', 'max:5'],
