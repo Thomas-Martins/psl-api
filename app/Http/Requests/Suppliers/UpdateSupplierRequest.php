@@ -4,6 +4,7 @@ namespace App\Http\Requests\Suppliers;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSupplierRequest extends FormRequest
 {
@@ -23,8 +24,16 @@ class UpdateSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [ 'string', 'max:255', 'unique:suppliers'],
-            'email' => [ 'email', 'max:255', 'unique:suppliers'],
+            'name' => [
+                'string',
+                'max:255',
+                Rule::unique('suppliers')->ignore($this->route('supplier')->id)
+            ],
+            'email' => [
+                'email',
+                'max:255',
+                Rule::unique('suppliers')->ignore($this->route('supplier')->id)
+            ],
             'phone' => [ 'string', 'max:20'],
             'address' => [ 'string', 'max:255'],
             'zipcode' => [ 'string', 'max:5'],
