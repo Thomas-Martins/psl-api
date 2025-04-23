@@ -23,36 +23,49 @@ class ProductsController
      */
     public function index(Request $request): LengthAwarePaginator|Collection
     {
-        $products = Product::query();
-        $products->with(['category', 'supplier']);
+        $validated = $request->validate([
+            'search'           => 'sometimes|string',
+            'priceRange'       => 'sometimes|array|size:2',
+            'priceRange.*'     => 'sometimes|numeric|min:0',
+        ]);
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
+        $products = Product::query()->with(['category', 'supplier']);
 
-            $products->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%");
-            });
+        if (!empty($validated['search'])) {
+            $products->where('name', 'like', '%'.$validated['search'].'%');
         }
 
         if ($request->filled('categories')) {
-            $categoriesRequest = $request->input('categories');
-            $categories = explode(',', $categoriesRequest);
-            $categoriesIds = Category::whereIn('name', $categories)->pluck('id');
-            $products->whereIn('category_id', $categoriesIds);
+            $catsParam = $request->input('categories');
+
+            if (is_string($catsParam)) {
+                $names = explode(',', $catsParam);
+            } elseif (is_array($catsParam)) {
+                $names = $catsParam;
+            } else {
+                $names = [];
+            }
+
+            $names = array_filter(array_map('trim', $names));
+
+            if (!empty($names)) {
+                $ids = Category::whereIn('name', $names)->pluck('id');
+                $products->whereIn('category_id', $ids);
+            }
         }
 
-        if($request->filled('priceRange')) {
-            $priceRange = $request->input('priceRange');
-            $minPrice = $priceRange[0];
-            $maxPrice = $priceRange[1];
-            $products->whereBetween('price', [$minPrice, $maxPrice]);
+        if (!empty($validated['priceRange'])) {
+            [$min, $max] = $validated['priceRange'];
+
+            if ($min > $max) {
+                [$min, $max] = [$max, $min];
+            }
+
+            $products->whereBetween('price', [$min, $max]);
         }
 
         $pagination = PaginationHelper::paginateIfAsked($products);
-
-        $pagination->getCollection()->transform(function ($product) {
-            return new ProductResource($product);
-        });
+        $pagination->getCollection()->transform(fn($p) => new ProductResource($p));
 
         return $pagination;
     }

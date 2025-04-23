@@ -23,10 +23,11 @@ class ProductsControllerTest extends TestCase
         $role = Role::create(['name' => Role::CLIENT]);
         $user = User::factory()->create(['role_id' => $role->id]);
 
-        $response = $this->actingAs($user, 'api')->json('GET', '/api/products');
+        $response = $this->actingAs($user, 'api')->json('GET', '/api/products?paginate=true');
 
         $response->assertStatus(200);
-        $this->assertCount(5, $response->json());
+
+        $response->assertJsonCount(5, 'data');
     }
 
     public function test_show_product(): void
