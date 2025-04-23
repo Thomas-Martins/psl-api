@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\CreateProductsRequest;
 use App\Http\Requests\UpdateProductsRequest;
+use App\Http\Resources\ProductResource;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Role;
 use App\Services\ImageUploadService;
@@ -32,7 +34,27 @@ class ProductsController
             });
         }
 
-        return PaginationHelper::paginateIfAsked($products);
+        if ($request->filled('categories')) {
+            $categoriesRequest = $request->input('categories');
+            $categories = explode(',', $categoriesRequest);
+            $categoriesIds = Category::whereIn('name', $categories)->pluck('id');
+            $products->whereIn('category_id', $categoriesIds);
+        }
+
+        if($request->filled('priceRange')) {
+            $priceRange = $request->input('priceRange');
+            $minPrice = $priceRange[0];
+            $maxPrice = $priceRange[1];
+            $products->whereBetween('price', [$minPrice, $maxPrice]);
+        }
+
+        $pagination = PaginationHelper::paginateIfAsked($products);
+
+        $pagination->getCollection()->transform(function ($product) {
+            return new ProductResource($product);
+        });
+
+        return $pagination;
     }
 
     /**

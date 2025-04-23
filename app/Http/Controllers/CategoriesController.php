@@ -6,7 +6,6 @@ use App\Helpers\PaginationHelper;
 use App\Http\Requests\CreateCategoryRequest;
 use App\Models\Category;
 use App\Models\Role;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CategoriesController
@@ -17,6 +16,10 @@ class CategoriesController
     public function index()
     {
         $categories = Category::query();
+
+        if(request()->has('products_count')){
+            $categories->withCount('products');
+        }
 
         return PaginationHelper::paginateIfAsked($categories);
     }
