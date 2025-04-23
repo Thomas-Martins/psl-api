@@ -18,7 +18,7 @@ class PaginationHelper
      */
     public static function paginateIfAsked($query, $max = 200)
     {
-        if (request()->get('paginate', false)) {
+        if (request()->get('paginate') && request()->get('paginate') === 'true') {
             return self::paginate($query, $max);
         }
         return $query->get();
