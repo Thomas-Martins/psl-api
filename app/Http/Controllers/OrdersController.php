@@ -86,6 +86,16 @@ class OrdersController
                         'quantity' => $product['quantity'],
                         'freeze_price' => $products[$product['id']]->price,
                     ]);
+
+                    // 3. Update product stock
+                    $productModel = $products[$product['id']];
+                    $productModel->stock -= $product['quantity'];
+                    if ($productModel->stock < 0) {
+                        return response()->json([
+                            'message' => 'Not enough stock for product: ' . $productModel->name,
+                        ], 422);
+                    }
+                    $productModel->save();
                 }
 
                 return response()->json([
