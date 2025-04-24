@@ -19,6 +19,7 @@ class CartProductResource extends JsonResource
             'name'     => $this->name,
             'quantity' => (int) $this->pivot->quantity,
             'price'    => (float) $this->price,
+            'image_url' => $this->image_url,
         ];
 
     }

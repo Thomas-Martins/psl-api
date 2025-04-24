@@ -28,6 +28,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     //CART
     Route::post('/carts', [CartController::class, 'store']);
+    Route::delete('/carts/user/{user}', [CartController::class, 'deleteCartUser']);
     Route::get('/carts/user/{user}', [CartController::class, 'showCartUser']);
 
     //USERS

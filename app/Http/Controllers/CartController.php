@@ -17,7 +17,7 @@ class CartController
     {
         $validated = $request->validate([
             'products'               => 'required|array',
-            'products.*.id'          => 'required|exists:products,id',
+            'products.*.id'          => 'required|integer|exists:products,id',
             'products.*.quantity'    => 'required|integer|min:1',
         ]);
 
@@ -46,6 +46,9 @@ class CartController
 
     public function showCartUser($userId)
     {
+        if(auth()->user()->id != $userId) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         $cart = Cart::where('user_id', $userId)
             ->with('products')
             ->first();
@@ -55,5 +58,17 @@ class CartController
         }
 
         return new CartResource($cart);
+    }
+
+    public function deleteCartUser($userId)
+    {
+        $cart = Cart::where('user_id', $userId)->first();
+
+        if ($cart) {
+            $cart->products()->detach();
+            $cart->delete();
+        }
+
+        return response()->json(['message' => 'Cart deleted successfully'], 200);
     }
 }
