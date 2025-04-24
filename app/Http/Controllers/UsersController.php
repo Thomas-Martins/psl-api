@@ -94,7 +94,7 @@ class UsersController
     public function show(User $user)
     {
         if (Auth::user()->role !== Role::ADMIN && Auth::user()->id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized'], 405);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
         return $user;
     }
@@ -106,8 +106,8 @@ class UsersController
     {
         $request->validated();
 
-        if(Auth::user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 405);
+        if(Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $user->update($request->all());
