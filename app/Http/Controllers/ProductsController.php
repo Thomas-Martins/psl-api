@@ -27,6 +27,7 @@ class ProductsController
             'search'           => 'sometimes|string',
             'priceRange'       => 'sometimes|array|size:2',
             'priceRange.*'     => 'sometimes|numeric|min:0',
+            'categoryId'       => 'sometimes|integer|exists:categories,id',
         ]);
 
         $products = Product::query()->with(['category', 'supplier']);
@@ -62,6 +63,10 @@ class ProductsController
             }
 
             $products->whereBetween('price', [$min, $max]);
+        }
+
+        if (!empty($validated['categoryId'])) {
+            $products->where('category_id', $validated['categoryId']);
         }
 
         $pagination = PaginationHelper::paginateIfAsked($products);
