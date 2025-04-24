@@ -45,74 +45,79 @@ class OrdersController
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'products' => 'required|array',
-            'products.*.id' => 'required|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1',
-            'products.*.price' => 'required|numeric|min:0',
+            'user_id'            => 'required|exists:users,id',
+            'products'           => 'required|array',
+            'products.*.id'      => 'required|exists:products,id',
+            'products.*.quantity'=> 'required|integer|min:1',
+            'products.*.price'   => 'required|numeric|min:0',
             'complementary_info' => 'nullable|string',
         ]);
 
         try {
-            return DB::transaction(function () use ($validated) {
-                // 1. Create the command
-                $products = Product::whereIn('id', collect($validated['products'])->pluck('id'))->get()->keyBy('id');
+            $order = DB::transaction(function () use ($validated) {
+                $products = Product::whereIn('id', collect($validated['products'])->pluck('id'))
+                    ->get()
+                    ->keyBy('id');
+
+                foreach ($validated['products'] as $item) {
+                    $model = $products[$item['id']];
+                    if ($model->stock < $item['quantity']) {
+                        throw new \Exception("Not enough stock for product: {$model->name}");
+                    }
+                }
+
                 $totalPrice = collect($validated['products'])
                     ->sum(fn($item) => $products[$item['id']]->price * $item['quantity']);
 
-
                 $order = Order::create([
-                    'user_id' => $validated['user_id'],
-                    'carrier_id' => null,
-                    'status' => Order::STATUS_PENDING,
+                    'user_id'                 => $validated['user_id'],
+                    'carrier_id'              => null,
+                    'status'                  => Order::STATUS_PENDING,
                     'estimated_delivery_date' => null,
-                    'departure_date' => null,
-                    'arrival_date' => null,
-                    'total_price' => $totalPrice,
-                    'cancellation_reason' => null,
-                    'notes' => $validated['complementary_info'] ?? null,
-                    'reference' => '',
+                    'departure_date'          => null,
+                    'arrival_date'            => null,
+                    'total_price'             => $totalPrice,
+                    'cancellation_reason'     => null,
+                    'notes'                   => $validated['complementary_info'] ?? null,
+                    'reference'               => '',
                 ]);
 
-                $datePart  = now()->format('Ymd');
-                $number    = str_pad($order->id, 4, '0', STR_PAD_LEFT);
+                $datePart = now()->format('Ymd');
+                $number   = str_pad($order->id, 4, '0', STR_PAD_LEFT);
                 $order->reference = "{$datePart}-{$number}";
                 $order->save();
 
-                // 2. Create command products
-                foreach ($validated['products'] as $product) {
+                foreach ($validated['products'] as $item) {
+                    $productModel = $products[$item['id']];
+
                     $order->ordersProducts()->create([
-                        'product_id' => $product['id'],
-                        'quantity' => $product['quantity'],
-                        'freeze_price' => $products[$product['id']]->price,
+                        'product_id'   => $item['id'],
+                        'quantity'     => $item['quantity'],
+                        'freeze_price' => $productModel->price,
                     ]);
 
-                    // 3. Update product stock
-                    $productModel = $products[$product['id']];
-                    $productModel->stock -= $product['quantity'];
-                    if ($productModel->stock < 0) {
-                        return response()->json([
-                            'message' => 'Not enough stock for product: ' . $productModel->name,
-                        ], 422);
-                    }
-                    $productModel->save();
+                    $productModel->decrement('stock', $item['quantity']);
                 }
 
-                return response()->json([
-                    'message' => 'Order created successfully',
-                    'data'    => $order->load('ordersProducts'),
-                ], 201);
-
-
+                return $order;
             });
-        }catch (\Exception $exception){
-            return response()->json([
-                'message' => 'An error occurred while creating the order',
-                'error' => $exception->getMessage(),
-            ], 500);
-        }
 
+            return response()->json([
+                'message' => 'Order created successfully',
+                'data'    => $order->load('ordersProducts'),
+            ], 201);
+
+        } catch (\Exception $e) {
+            $status = str_contains($e->getMessage(), 'Not enough stock') ? 422 : 500;
+            return response()->json([
+                'message' => $status === 422
+                    ? $e->getMessage()
+                    : 'An error occurred while creating the order',
+                'error'   => $status === 500 ? $e->getMessage() : null,
+            ], $status);
+        }
     }
+
 
     /**
      * Display the specified resource.
