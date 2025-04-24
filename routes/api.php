@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CarriersController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\ProductsController;
@@ -24,6 +25,10 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     //COMMANDS
     Route::apiResource('/orders', OrdersController::class)->except(['update', 'destroy']);
+
+    //CART
+    Route::post('/carts', [CartController::class, 'store']);
+    Route::get('/carts/user/{user}', [CartController::class, 'showCartUser']);
 
     //USERS
     Route::put('/users/{user}', [UsersController::class, 'update']);
