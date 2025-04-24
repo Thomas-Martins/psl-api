@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 

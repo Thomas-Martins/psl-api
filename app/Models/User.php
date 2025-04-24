@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -50,6 +48,7 @@ class User extends Authenticatable
         'identity',
         'role',
         'image_url',
+        'store'
     ];
 
     /**
@@ -92,4 +91,8 @@ class User extends Authenticatable
         return $this->image_path ? Storage::disk('public')->url($this->image_path) : '';
     }
 
+    public function getStoreAttribute()
+    {
+        return $this->store()->first();
+    }
 }

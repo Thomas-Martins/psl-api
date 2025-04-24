@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('commands', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->enum("status",["pending","processing","completed","cancelled","delivery","delivered"])->nullable(false);
+            $table->enum("status",["pending","processing","completed","cancelled","shipped"])->nullable(false);
             $table->string("reference")->unique()->nullable(false);
             $table->date("estimated_delivery_date")->nullable(false);
             $table->date('departure_date')->nullable();
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('commands');
+        Schema::dropIfExists('orders');
     }
 };

@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('commands_products', function (Blueprint $table) {
+        Schema::create('orders_products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('command_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('quantity')->default(1)->nullable(false);
             $table->decimal('freeze_price', 8, 2)->nullable(false);
@@ -21,11 +21,11 @@ return new class extends Migration
 
 
             //Index for faster queries
-            $table->index('command_id');
+            $table->index('order_id');
             $table->index('product_id');
 
             //Unique constraint
-            $table->unique(['command_id', 'product_id']);
+            $table->unique(['order_id', 'product_id']);
         });
     }
 
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('commands_products');
+        Schema::dropIfExists('orders_products');
     }
 };

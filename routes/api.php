@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CarriersController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\StoreController;
@@ -21,10 +22,17 @@ Route::group(['middleware' => ['auth:api']], function () {
     //CATEGORIES
     Route::apiResource('/categories', CategoriesController::class)->except(['store', 'update', 'destroy']);
 
+    //COMMANDS
+    Route::apiResource('/orders', OrdersController::class)->except(['update', 'destroy']);
+
+    //USERS
+    Route::put('/users/{user}', [UsersController::class, 'update']);
+    Route::get('/users/{user}', [UsersController::class, 'show']);
+
     //ADMIN ROUTES
     Route::group(['middleware' => ['roles:admin']], function () {
         //USERS
-        Route::apiResource('/users', UsersController::class);
+        Route::apiResource('/users', UsersController::class)->except(['update', 'show']);
 
         //ROLES
         Route::apiResource('/roles', RolesController::class);
