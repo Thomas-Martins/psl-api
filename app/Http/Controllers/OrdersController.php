@@ -89,7 +89,7 @@ class OrdersController
                 }
 
                 return response()->json([
-                    'message' => 'Command created successfully',
+                    'message' => 'Order created successfully',
                     'data'    => $order->load('ordersProducts'),
                 ], 201);
 
@@ -97,7 +97,7 @@ class OrdersController
             });
         }catch (\Exception $exception){
             return response()->json([
-                'message' => 'An error occurred while creating the command',
+                'message' => 'An error occurred while creating the order',
                 'error' => $exception->getMessage(),
             ], 500);
         }
@@ -111,7 +111,7 @@ class OrdersController
     {
         if(!$order->exists) {
             return response()->json([
-                'message' => 'Command not found',
+                'message' => 'Order not found',
             ], 404);
         }
         if($order->user_id !== auth()->user()->id && auth()->user()->role !== Role::ADMIN && auth()->user()->role !== Role::GESTIONNAIRE) {
@@ -123,7 +123,7 @@ class OrdersController
         $order->load('ordersProducts.product');
 
         return (new OrderResource($order))
-            ->additional(['message' => 'Command retrieved successfully'])
+            ->additional(['message' => 'Order retrieved successfully'])
             ->response()
             ->setStatusCode(200);
     }
