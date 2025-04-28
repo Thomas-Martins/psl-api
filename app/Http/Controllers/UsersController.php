@@ -130,8 +130,13 @@ class UsersController
         return response()->noContent();
     }
 
-    static function updateUserImage(User $user)
+    public function updateUserImage(User $user)
     {
+        if(Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+
         $validated = request()->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -142,17 +147,23 @@ class UsersController
             return $user;
         }
 
-        $newPath = (new ImageUploadService())->upload($image, 'users', 'user');
+        try {
+            $newPath = (new ImageUploadService())->upload($image, 'users', 'user');
 
-        DB::transaction(function() use ($user, $newPath) {
-            $oldPath = $user->image_path;
-            $user->update(['image_path' => $newPath]);
+            DB::transaction(function() use ($user, $newPath) {
+                $oldPath = $user->image_path;
+                $user->update(['image_path' => $newPath]);
 
-            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
-        });
+                if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            });
 
-        return $user->refresh();
+            return response()->json($user->refresh(), 200);
+        }catch (\Exception $e) {
+            return response()->json(['message' => 'Error uploading image'], 500);
+        }
+
+
     }
 }
