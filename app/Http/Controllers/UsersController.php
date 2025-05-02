@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -127,5 +128,42 @@ class UsersController
         $user->delete();
 
         return response()->noContent();
+    }
+
+    public function updateUserImage(User $user)
+    {
+        if(Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+
+        $validated = request()->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $image = $validated['image'];
+
+        if (empty($image)) {
+            return $user;
+        }
+
+        try {
+            $newPath = (new ImageUploadService())->upload($image, 'users', 'user');
+
+            DB::transaction(function() use ($user, $newPath) {
+                $oldPath = $user->image_path;
+                $user->update(['image_path' => $newPath]);
+
+                if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            });
+
+            return response()->json($user->refresh(), 200);
+        }catch (\Exception $e) {
+            return response()->json(['message' => 'Error uploading image'], 500);
+        }
+
+
     }
 }

@@ -33,6 +33,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     //USERS
     Route::put('/users/{user}', [UsersController::class, 'update']);
+    Route::post('/users/{user}/upload-image', [UsersController::class, 'updateUserImage']);
     Route::get('/users/{user}', [UsersController::class, 'show']);
 
     //ADMIN ROUTES
