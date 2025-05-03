@@ -5,17 +5,23 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\Users\CreateUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
+use App\Mail\WelcomeWithPassword;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\ImageUploadService;
+use App\Services\PasswordGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class UsersController
 {
+    public function __construct(
+        private readonly PasswordGeneratorService $passwordGenerator
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -65,29 +71,46 @@ class UsersController
             return response()->json(['message' => 'Unauthorized'], 405);
         }
 
-        $password = Str::random(12);
+        // Generate a secure password
+        $password = $this->passwordGenerator->generate();
         $data['password'] = bcrypt($password);
 
         try {
+            DB::beginTransaction();
+
             if (isset($data['image']) && !is_null($data['image'])) {
                 $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'users', 'user');
             }
 
-            // Création de l'utilisateur
+            // Create the user
             $user = User::create($data);
 
+            // Send welcome email with password
+            Mail::to($user->email)->send(new WelcomeWithPassword(
+                user: $user,
+                password: $password,
+                userLocale: $data['locale'] ?? config('app.locale')
+            ));
+
+            DB::commit();
+
+            return response()->json(['message' => 'User created successfully'], 201);
         } catch (\Exception $e) {
-            // En cas d'erreur, si une image a été uploadée, la supprimer du disque public
+            DB::rollBack();
+
+            // Clean up uploaded image if it exists
             if (isset($data['image_path'])) {
                 Storage::disk('public')->delete($data['image_path']);
             }
 
-            return response()->json(['message' => 'Erreur lors de la création de l\'utilisateur'], 500);
+
+            return response()->json([
+                'message' => 'Error creating user',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
-
-        return response()->json(['user' => $user, 'password' => $password], 201);
     }
-
 
     /**
      * Display the specified resource.
@@ -136,7 +159,6 @@ class UsersController
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-
         $validated = request()->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -163,7 +185,5 @@ class UsersController
         }catch (\Exception $e) {
             return response()->json(['message' => 'Error uploading image'], 500);
         }
-
-
     }
 }
