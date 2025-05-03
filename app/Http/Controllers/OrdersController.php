@@ -9,7 +9,13 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\Orders\CreateOrderRequest;
+use App\Mail\OrderConfirmation;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class OrdersController
 {
@@ -42,43 +48,38 @@ class OrdersController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateOrderRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'user_id'            => 'required|exists:users,id',
-            'products'           => 'required|array',
-            'products.*.id'      => 'required|exists:products,id',
-            'products.*.quantity'=> 'required|integer|min:1',
-            'products.*.price'   => 'required|numeric|min:0',
-            'complementary_info' => 'nullable|string',
-        ]);
-
         try {
-            $order = DB::transaction(function () use ($validated) {
-                $products = Product::whereIn('id', collect($validated['products'])->pluck('id'))
+            $order = DB::transaction(function () use ($request) {
+                $products = Product::whereIn('id', collect($request->validated()['products'])->pluck('id'))
+                    ->lockForUpdate()
                     ->get()
                     ->keyBy('id');
 
-                foreach ($validated['products'] as $item) {
+                foreach ($request->validated()['products'] as $item) {
                     $model = $products[$item['id']];
                     if ($model->stock < $item['quantity']) {
                         throw new \Exception("Not enough stock for product: {$model->name}");
                     }
                 }
 
-                $totalPrice = collect($validated['products'])
-                    ->sum(fn($item) => $products[$item['id']]->price * $item['quantity']);
+                // Get user's store for shipping address
+                $user = \App\Models\User::with('store')->findOrFail($request->validated()['user_id']);
+                
+                $totalHt = collect($request->validated()['products'])
+                    ->sum(fn($item) => $item['price'] * $item['quantity']);
 
                 $order = Order::create([
-                    'user_id'                 => $validated['user_id'],
+                    'user_id'                 => $user->id,
                     'carrier_id'              => null,
                     'status'                  => Order::STATUS_PENDING,
                     'estimated_delivery_date' => null,
                     'departure_date'          => null,
                     'arrival_date'            => null,
-                    'total_price'             => $totalPrice,
+                    'total_price'             => $totalHt,
                     'cancellation_reason'     => null,
-                    'notes'                   => $validated['complementary_info'] ?? null,
+                    'notes'                   => $request->validated()['complementary_info'] ?? null,
                     'reference'               => '',
                 ]);
 
@@ -87,20 +88,32 @@ class OrdersController
                 $order->reference = "{$datePart}-{$number}";
                 $order->save();
 
-                foreach ($validated['products'] as $item) {
-                    $productModel = $products[$item['id']];
-
+                foreach ($request->validated()['products'] as $item) {
                     $order->ordersProducts()->create([
                         'product_id'   => $item['id'],
                         'quantity'     => $item['quantity'],
-                        'freeze_price' => $productModel->price,
+                        'freeze_price' => $item['price'],
                     ]);
 
-                    $productModel->decrement('stock', $item['quantity']);
+                    $products[$item['id']]->decrement('stock', $item['quantity']);
                 }
 
                 return $order;
             });
+
+            // Load relationships needed for the email
+            $order->load(['ordersProducts', 'user.store']);
+
+            // Send confirmation email and handle failures separately
+            try {
+                Mail::to($order->user->email)->send(new OrderConfirmation(
+                    order: $order,
+                    userLocale: $request->input('locale', config('app.locale'))
+                ));
+            } catch (\Exception $e) {
+                Log::error('Order confirmation email failed: ' . $e->getMessage());
+                // Continue execution - don't let email failure affect the API response
+            }
 
             return response()->json([
                 'message' => 'Order created successfully',
@@ -108,6 +121,9 @@ class OrdersController
             ], 201);
 
         } catch (\Exception $e) {
+            Log::error('Order creation failed: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
             $status = str_contains($e->getMessage(), 'Not enough stock') ? 422 : 500;
             return response()->json([
                 'message' => $status === 422
@@ -129,7 +145,7 @@ class OrdersController
                 'message' => 'Order not found',
             ], 404);
         }
-        if($order->user_id !== auth()->user()->id && auth()->user()->role !== Role::ADMIN && auth()->user()->role !== Role::GESTIONNAIRE) {
+        if($order->user_id !== Auth::user()->id && Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
