@@ -63,7 +63,7 @@ class CreateOrderRequest extends FormRequest
             'products.*.price.required' => 'Le prix est requis pour chaque produit',
             'products.*.price.numeric' => 'Le prix doit être un nombre',
             'products.*.price.min' => 'Le prix ne peut pas être négatif',
-            'products.*.price.max' => 'Le prix doit être au maximum 9999999.99',
+            'products.*.price.max' => 'Le prix doit être au maximum 9999.99',
             'locale.string' => 'La locale doit être une chaîne de caractères',
             'locale.in' => 'La locale doit être soit fr soit en',
         ];
