@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
@@ -48,7 +49,8 @@ class User extends Authenticatable
         'identity',
         'role',
         'image_url',
-        'store'
+        'store',
+        'orders_count',
     ];
 
     /**
@@ -74,6 +76,11 @@ class User extends Authenticatable
         return $this->belongsTo(Store::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     public function getRoleAttribute(): string
     {
         $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
@@ -94,5 +101,10 @@ class User extends Authenticatable
     public function getStoreAttribute()
     {
         return $this->store()->first();
+    }
+
+    public function getOrdersCountAttribute(): int
+    {
+        return $this->orders()->count();
     }
 }

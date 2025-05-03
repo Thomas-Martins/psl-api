@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ __('emails.welcome.subject', ['app_name' => $app_name]) }}</title>
+    <title>{{ __('emails.welcome.subject', ['app_name' => config('app.name')]) }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,7 +47,7 @@
 </head>
 <body>
     <div class="header">
-        <img src="{{ asset('images/logos/PslSolutions.svg') }}" alt="{{ $app_name }}" class="logo">
+        <img src="{{ asset('images/logos/PslSolutions.svg') }}" alt="{{ config('app.name') }}" class="logo">
     </div>
 
     <div class="content">
@@ -65,11 +65,11 @@
         <p>{{ __('emails.welcome.unauthorized_notice') }}</p>
 
         <p>{{ __('emails.welcome.regards') }}<br>
-        {{ __('emails.welcome.team', ['app_name' => $app_name]) }}</p>
+        {{ __('emails.welcome.team', ['app_name' => config('app.name')]) }}</p>
     </div>
 
     <div class="footer">
-        <p>© {{ date('Y') }} {{ $app_name }}. {{ __('emails.welcome.rights_reserved') }}</p>
+        <p>© {{ date('Y') }} {{ config('app.name') }}. {{ __('emails.welcome.rights_reserved') }}</p>
     </div>
 </body>
 </html> 

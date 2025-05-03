@@ -21,11 +21,7 @@ class OrderConfirmation extends Mailable
     public function __construct(
         public Order $order,
         public ?string $userLocale = null
-    ) {
-        if ($this->userLocale) {
-            App::setLocale($this->userLocale);
-        }
-    }
+    ) {}
 
     /**
      * Get the message envelope.
@@ -45,6 +41,17 @@ class OrderConfirmation extends Mailable
         return new Content(
             view: 'emails.order-confirmation',
         );
+    }
+
+    /**
+     * Build the message with localization.
+     */
+    public function build()
+    {
+        if ($this->userLocale) {
+            return $this->locale($this->userLocale);
+        }
+        return $this;
     }
 
     /**

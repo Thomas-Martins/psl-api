@@ -51,10 +51,9 @@ class OrdersController
     public function store(CreateOrderRequest $request): JsonResponse
     {
         try {
-            DB::beginTransaction();
-
             $order = DB::transaction(function () use ($request) {
                 $products = Product::whereIn('id', collect($request->validated()['products'])->pluck('id'))
+                    ->lockForUpdate()
                     ->get()
                     ->keyBy('id');
 
@@ -105,13 +104,16 @@ class OrdersController
             // Load relationships needed for the email
             $order->load(['ordersProducts', 'user.store']);
 
-            // Send confirmation email
-            Mail::to($order->user->email)->send(new OrderConfirmation(
-                order: $order,
-                userLocale: $request->input('locale', config('app.locale'))
-            ));
-
-            DB::commit();
+            // Send confirmation email and handle failures separately
+            try {
+                Mail::to($order->user->email)->send(new OrderConfirmation(
+                    order: $order,
+                    userLocale: $request->input('locale', config('app.locale'))
+                ));
+            } catch (\Exception $e) {
+                Log::error('Order confirmation email failed: ' . $e->getMessage());
+                // Continue execution - don't let email failure affect the API response
+            }
 
             return response()->json([
                 'message' => 'Order created successfully',
@@ -119,8 +121,6 @@ class OrdersController
             ], 201);
 
         } catch (\Exception $e) {
-            DB::rollBack();
-
             Log::error('Order creation failed: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 

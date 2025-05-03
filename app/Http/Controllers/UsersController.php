@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class UsersController
 {
@@ -67,7 +68,7 @@ class UsersController
     {
         $data = $request->validated();
 
-        if(Auth::user()->role !== 'admin') {
+        if(Auth::user()->role !== Role::ADMIN) {
             return response()->json(['message' => 'Unauthorized'], 405);
         }
 
@@ -76,25 +77,28 @@ class UsersController
         $data['password'] = bcrypt($password);
 
         try {
-            DB::beginTransaction();
+            $user = DB::transaction(function () use ($data, $password) {
+                if (isset($data['image']) && !is_null($data['image'])) {
+                    $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'users', 'user');
+                }
 
-            if (isset($data['image']) && !is_null($data['image'])) {
-                $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'users', 'user');
-            }
-
-            // Create the user
-            $user = User::create($data);
+                // Create the user
+                return User::create($data);
+            });
 
             // Send welcome email with password
-            Mail::to($user->email)->send(new WelcomeWithPassword(
-                user: $user,
+            Mail::to($user->email)
+            ->locale($data['locale'] ?? config('app.locale'))
+            ->send(new WelcomeWithPassword(
+                user:     $user,
                 password: $password,
-                userLocale: $data['locale'] ?? config('app.locale')
             ));
 
-            DB::commit();
+            return response()->json([
+                'message' => 'User created successfully',
+                'data' => $user
+            ], 201);
 
-            return response()->json(['message' => 'User created successfully'], 201);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -103,11 +107,13 @@ class UsersController
                 Storage::disk('public')->delete($data['image_path']);
             }
 
+            // Log the full error details
+            Log::error('User creation failed: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
 
             return response()->json([
                 'message' => 'Error creating user',
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => app()->isProduction() ? 'Internal server error' : $e->getMessage()
             ], 500);
         }
     }

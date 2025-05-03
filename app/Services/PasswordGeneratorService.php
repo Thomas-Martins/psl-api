@@ -12,6 +12,9 @@ class PasswordGeneratorService
      */
     public function generate(int $length = 12): string
     {
+        // Ensure minimum length for security
+        $length = max(8, $length);
+
         $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $lowercase = 'abcdefghijklmnopqrstuvwxyz';
         $numbers = '0123456789';
