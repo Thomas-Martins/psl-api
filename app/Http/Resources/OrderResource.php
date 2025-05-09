@@ -22,8 +22,19 @@ class OrderResource extends JsonResource
                     'price'        => $op->freeze_price,
                     'quantity'     => $op->quantity,
                     'image_url'    => $op->product->image_url,
+                    'reference'   => $op->product->reference,
+                    'location'    => $op->product->location,
+                    'category'     => $op->product->category,
                 ];
             })->all(),
+            'user'                    => [
+                'identity'       => $this->user->identity,
+                'store'    => [
+                    'name'    => $this->user->store->name,
+                    'address' => $this->user->store->full_address,
+                ],
+            ],
+            'total_quantity'  => $this->ordersProducts->sum('quantity'),
         ];
     }
 }

@@ -8,7 +8,9 @@ use App\Models\Carrier;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Orders\CreateOrderRequest;
@@ -32,16 +34,47 @@ class OrdersController
 
         if (! empty($validated['user_id'])) {
             $ordersQuery->where('user_id', $validated['user_id']);
+        }else {
+            $ordersQuery->with('user.store');
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+
+            $ordersQuery->where(function ($query) use ($search) {
+                $query->where('reference', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('firstname', 'like', "%{$search}%")
+                            ->orWhere('lastname', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhereHas('store', function ($q) use ($search) {
+                                $q->where('address', 'like', "%{$search}%")
+                                    ->orWhere('city', 'like', "%{$search}%")
+                                    ->orWhere('zipcode', 'like', "%{$search}%");
+                            });
+                    });
+            });
         }
 
         $orders = $ordersQuery
             ->orderBy('created_at', 'desc');
 
         $orders = PaginationHelper::paginateIfAsked($orders);
+        if ($orders instanceof LengthAwarePaginator) {
 
-        return OrderResource::collection($orders)
-            ->response()
-            ->setStatusCode(200);
+            $statusLabels = (new Order())->statusLabels();
+            $orders->getCollection()->transform(fn($o) => new OrderResource($o));
+
+            return response()->json([
+                'data' => $orders->items(),
+                'links' => $orders->linkCollection()->toArray(),
+                'total' => $orders->total(),
+                'status' => $statusLabels,
+            ]);
+        }
+
+
+        return $orders->transform(fn($o) => new OrderResource($o));
     }
 
 
@@ -66,7 +99,7 @@ class OrdersController
 
                 // Get user's store for shipping address
                 $user = \App\Models\User::with('store')->findOrFail($request->validated()['user_id']);
-                
+
                 $totalHt = collect($request->validated()['products'])
                     ->sum(fn($item) => $item['price'] * $item['quantity']);
 
