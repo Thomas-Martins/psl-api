@@ -44,4 +44,15 @@ class Order extends Model
     {
         return $this->hasMany(OrdersProduct::class);
     }
+
+    public function statusLabels(): array
+    {
+        return [
+            self::STATUS_PENDING,
+            self::STATUS_PROCESSING,
+            self::STATUS_COMPLETED,
+            self::STATUS_CANCELLED,
+            self::STATUS_SHIPPED,
+        ];
+    }
 }

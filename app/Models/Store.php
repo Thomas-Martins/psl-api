@@ -18,9 +18,16 @@ class Store extends Model
         'siret',
     ];
 
+    protected $appends = ['full_address'];
+
     public function customers()
     {
         return $this->hasMany(User::class);
+    }
+
+    public function getFullAddressAttribute(): string
+    {
+        return $this->address . ', ' . $this->zipcode . ' ' . $this->city;
     }
 
 }
