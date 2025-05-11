@@ -28,7 +28,6 @@ class StoreControllerTest extends TestCase
     }
 
     /** INDEX */
-
     public function test_admin_can_list_stores(): void
     {
         Store::factory()->count(5)->create();
@@ -37,7 +36,7 @@ class StoreControllerTest extends TestCase
         $response = $this->actingAs($admin, 'api')->getJson('/api/stores');
 
         $response->assertStatus(200);
-        $this->assertCount(5, $response->json());
+        $this->assertCount(5, $response->json('data')); // Changé pour accéder à 'data'
     }
 
     public function test_gestionnaire_can_list_stores(): void
@@ -48,7 +47,7 @@ class StoreControllerTest extends TestCase
         $response = $this->actingAs($gestionnaire, 'api')->getJson('/api/stores');
 
         $response->assertStatus(200);
-        $this->assertCount(3, $response->json());
+        $this->assertCount(3, $response->json('data')); // Changé pour accéder à 'data'
     }
 
     public function test_user_with_unauthorized_role_cannot_list_stores(): void
@@ -62,17 +61,20 @@ class StoreControllerTest extends TestCase
     }
 
     /** STORE */
-
     public function test_admin_can_create_store(): void
     {
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
-
         $data = Store::factory()->make()->toArray();
 
         $response = $this->actingAs($admin, 'api')->postJson('/api/stores', $data);
 
         $response->assertStatus(201)
-            ->assertJson(['message' => 'Store created']);
+            ->assertJson([
+                'message' => 'Store created',
+                'store' => [
+                    'name' => $data['name']
+                ]
+            ]);
 
         $this->assertDatabaseHas('stores', ['name' => $data['name']]);
     }
@@ -102,7 +104,6 @@ class StoreControllerTest extends TestCase
     }
 
     /** SHOW */
-
     public function test_admin_can_show_store(): void
     {
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
@@ -110,7 +111,11 @@ class StoreControllerTest extends TestCase
 
         $response = $this->actingAs($admin, 'api')->getJson("/api/stores/{$store->id}");
 
-        $response->assertStatus(200)->assertJson($store->toArray());
+        $response->assertStatus(200)
+            ->assertJsonFragment([
+                'name' => $store->name,
+                'id' => $store->id
+            ]);
     }
 
     public function test_gestionnaire_can_show_store(): void
@@ -120,8 +125,21 @@ class StoreControllerTest extends TestCase
 
         $response = $this->actingAs($gestionnaire, 'api')->getJson("/api/stores/{$store->id}");
 
-        $response->assertStatus(200)->assertJson($store->toArray());
-    }
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'id' => $store->id,
+                    'name' => $store->name,
+                    'email' => $store->email,
+                    'phone' => $store->phone,
+                    'address' => $store->address,
+                    'city' => $store->city,
+                    'zipcode' => $store->zipcode,
+                    'siret' => $store->siret,
+                    'full_address' => $store->address . ', ' . $store->zipcode . ' ' . $store->city
+                ]
+            ]);
+}
 
     public function test_unauthorized_user_cannot_show_store(): void
     {
@@ -134,18 +152,21 @@ class StoreControllerTest extends TestCase
     }
 
     /** UPDATE */
-
     public function test_admin_can_update_store(): void
     {
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
         $store = Store::factory()->create();
-
         $update = ['name' => 'Updated Store'];
 
         $response = $this->actingAs($admin, 'api')->putJson("/api/stores/{$store->id}", $update);
 
         $response->assertStatus(200)
-            ->assertJson(['message' => 'Store updated']);
+            ->assertJson([
+                'message' => 'Store updated',
+                'store' => [
+                    'name' => 'Updated Store'
+                ]
+            ]);
 
         $this->assertDatabaseHas('stores', ['name' => 'Updated Store']);
     }
