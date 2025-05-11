@@ -6,7 +6,9 @@ use App\Helpers\PaginationHelper;
 use App\Http\Requests\CreateCategoryRequest;
 use App\Models\Category;
 use App\Models\Role;
+use App\Services\ImageUploadService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CategoriesController
 {
@@ -20,6 +22,8 @@ class CategoriesController
         if(request()->has('products_count')){
             $categories->withCount('products');
         }
+
+        $categories->orderBy('name', 'ASC');
 
         return PaginationHelper::paginateIfAsked($categories);
     }
@@ -37,7 +41,12 @@ class CategoriesController
 
 
         try {
-            $category = Category::create($data);
+            $category = DB::transaction(function () use ($data) {
+                if (isset($data['image']) && !is_null($data['image'])) {
+                    $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'categories', 'category');
+                }
+                return Category::create($data);
+            });
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de la création de la catégorie'], 500);
         }
