@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\CreateStoreRequest;
 use App\Http\Requests\UpdateStoreRequest;
+use App\Http\Resources\StoreResource;
 use App\Models\Role;
 use App\Models\Store;
 use App\Services\ImageUploadService;
@@ -34,7 +35,7 @@ class StoreController
 
         $stores->withCount('customers');
 
-        return PaginationHelper::paginateIfAsked($stores);
+        return StoreResource::collection(PaginationHelper::paginateIfAsked($stores));
     }
 
     /**
@@ -64,7 +65,7 @@ class StoreController
             return response()->json(['message' => 'Erreur lors de la création du point de vente'], 500);
         }
 
-        return response()->json(['message' => 'Store created', 'carrier' => $store], 201);
+        return response()->json(['message' => 'Store created', 'store' => new StoreResource($store)], 201);
     }
 
     /**
@@ -72,7 +73,10 @@ class StoreController
      */
     public function show(Store $store)
     {
-        return $store;
+        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json(['message' => 'Unauthorized'], 405);
+        }
+        return StoreResource::make($store);
     }
 
     /**
@@ -84,7 +88,7 @@ class StoreController
 
         $store->update($data);
 
-        return response()->json(['message' => 'Store updated', 'store' => $store]);
+        return response()->json(['message' => 'Store updated', 'store' => new StoreResource($store)]);
     }
 
     /**
