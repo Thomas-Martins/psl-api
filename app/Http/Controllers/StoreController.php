@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\CreateStoreRequest;
 use App\Http\Requests\UpdateStoreRequest;
+use App\Http\Resources\StoreResource;
 use App\Models\Role;
 use App\Models\Store;
 use App\Services\ImageUploadService;
@@ -72,7 +73,7 @@ class StoreController
      */
     public function show(Store $store)
     {
-        return $store;
+        return StoreResource::make($store);
     }
 
     /**
