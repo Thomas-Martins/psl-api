@@ -3,10 +3,12 @@ function setDebugHeaders() {
     global $HAS_HEADER;
 
     if (!$HAS_HEADER) {
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-        header('Access-Control-Allow-Headers: *');
-        $HAS_HEADER = true;
+         if (app()->environment('local', 'development', 'testing')) {
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+            header('Access-Control-Allow-Headers: *');
+            $HAS_HEADER = true;
+        }
     }
 }
 
