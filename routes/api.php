@@ -19,6 +19,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::group(['middleware' => ['auth:api']], function () {
     //PRODUCTS
     Route::apiResource('/products', ProductsController::class)->except(['store', 'update', 'destroy']);
+    Route::post('/products/{product}/upload-image', [ProductsController::class, 'updateProductImage']);
 
     //CATEGORIES
     Route::apiResource('/categories', CategoriesController::class)->except(['store', 'update', 'destroy']);
