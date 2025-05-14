@@ -122,6 +122,9 @@ class ProductsController
 
         try {
             if ($request->has('addStock')) {
+                if (!isset($data['stock']) || !is_numeric($data['stock'])) {
+                                       return response()->json(['message' => 'Stock value is required and must be numeric'], 422);
+                }
                 $product->increment('stock', $data['stock']);
                 return response()->json(['message' => 'Stock updated', 'product' => $product], 200);
 
