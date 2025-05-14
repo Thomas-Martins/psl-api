@@ -166,7 +166,7 @@ class UsersController
         }
 
         $validated = request()->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $image = $validated['image'];

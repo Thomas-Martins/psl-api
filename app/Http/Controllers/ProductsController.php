@@ -15,6 +15,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductsController
 {
@@ -102,9 +104,9 @@ class ProductsController
     /**
      * Display the specified resource.
      */
-    public function show(Product $product): JsonResponse
+    public function show(Product $product): ProductResource
     {
-        return response()->json($product);
+        return ProductResource::make($product);
     }
 
     /**
@@ -119,10 +121,20 @@ class ProductsController
         }
 
         try {
-            if (isset($data['image']) && !is_null($data['image'])) {
-                $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'products', 'product');
+            if ($request->has('addStock')) {
+                if (!isset($data['stock']) || !is_numeric($data['stock'])) {
+                                       return response()->json(['message' => 'Stock value is required and must be numeric'], 422);
+                }
+                $product->increment('stock', $data['stock']);
+                return response()->json(['message' => 'Stock updated', 'product' => $product], 200);
+
+            }else{
+                if (isset($data['image']) && !is_null($data['image'])) {
+                    $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'products', 'product');
+                }
+                $product->update($data);
             }
-            $product->update($data);
+
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de la mise à jour du produit'], 500);
         }
@@ -146,5 +158,34 @@ class ProductsController
         }
 
         return response()->json(['message' => 'Product deleted'], 200);
+    }
+
+    public function updateProductImage(Product $product)
+    {
+        $validated = request()->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $image = $validated['image'];
+
+        if (empty($image)) {
+            return $product;
+        }
+
+        try {
+            $newPath = (new ImageUploadService())->upload($image, 'products', 'product');
+
+            DB::transaction(function () use ($product, $newPath) {
+                $oldPath = $product->image_path;
+                $product->update(['image_path' => $newPath]);
+
+                if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            });
+            return response()->json($product->refresh(), 200);
+        }catch (\Exception $e){
+            return response()->json(['message' => 'Error uploading image'], 500);
+        }
     }
 }
