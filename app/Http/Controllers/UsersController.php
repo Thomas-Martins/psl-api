@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Requests\Users\CreateUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Mail\WelcomeWithPassword;
 use App\Models\Role;
 use App\Models\User;
@@ -58,7 +59,10 @@ class UsersController
             });
         }
 
-        return PaginationHelper::paginateIfAsked($users);
+        $pagination = PaginationHelper::paginateIfAsked($users);
+        $pagination->getCollection()->transform(fn ($user) => new UserResource($user));
+
+        return $pagination;
     }
 
     /**
@@ -72,7 +76,6 @@ class UsersController
             return response()->json(['message' => 'Unauthorized'], 405);
         }
 
-        // Generate a secure password
         $password = $this->passwordGenerator->generate();
         $data['password'] = bcrypt($password);
 
@@ -82,11 +85,9 @@ class UsersController
                     $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'users', 'user');
                 }
 
-                // Create the user
                 return User::create($data);
             });
 
-            // Send welcome email with password
             Mail::to($user->email)
             ->locale($data['locale'] ?? config('app.locale'))
             ->send(new WelcomeWithPassword(
@@ -102,12 +103,10 @@ class UsersController
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Clean up uploaded image if it exists
             if (isset($data['image_path'])) {
                 Storage::disk('public')->delete($data['image_path']);
             }
 
-            // Log the full error details
             Log::error('User creation failed: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
@@ -121,12 +120,17 @@ class UsersController
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
         if (Auth::user()->role !== Role::ADMIN && Auth::user()->id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        return $user;
+
+        if($request->has('withOrders')) {
+            $user->load('orders', 'store');
+        }
+
+        return new UserResource($user);
     }
 
     /**

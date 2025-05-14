@@ -35,7 +35,14 @@ class StoreController
 
         $stores->withCount('customers');
 
-        return StoreResource::collection(PaginationHelper::paginateIfAsked($stores));
+        $pagination = PaginationHelper::paginateIfAsked($stores);
+        if (method_exists($pagination, 'getCollection')) {
+            $pagination->getCollection()->transform(fn($p) => new StoreResource($p));
+        } else {
+            $pagination = $pagination->map(fn($p) => new StoreResource($p));
+        }
+
+        return $pagination;
     }
 
     /**

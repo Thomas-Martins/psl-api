@@ -51,6 +51,7 @@ class User extends Authenticatable
         'image_url',
         'store',
         'orders_count',
+        'full_address'
     ];
 
     /**
@@ -90,7 +91,7 @@ class User extends Authenticatable
 
     public function getIdentityAttribute(): string
     {
-        return $this->firstname . ' ' . $this->lastname;
+        return $this->lastname . ' ' . $this->firstname;
     }
 
     public function getImageUrlAttribute(): string
@@ -106,5 +107,10 @@ class User extends Authenticatable
     public function getOrdersCountAttribute(): int
     {
         return $this->orders()->count();
+    }
+
+    public function getFullAddressAttribute(): string
+    {
+        return $this->address . ', ' . $this->zipcode . ' ' . $this->city;
     }
 }
