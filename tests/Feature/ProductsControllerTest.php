@@ -39,7 +39,7 @@ class ProductsControllerTest extends TestCase
         $response = $this->actingAs($user, 'api')->json('GET', '/api/products/' . $product->id);
 
         $response->assertStatus(200);
-        $this->assertEquals($product->id, $response->json('id'));
+        $this->assertEquals($product->id, $response->json('data.id'));
     }
 
     public function test_store_admin_user(): void
