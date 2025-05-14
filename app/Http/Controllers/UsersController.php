@@ -60,7 +60,12 @@ class UsersController
         }
 
         $pagination = PaginationHelper::paginateIfAsked($users);
-        $pagination->getCollection()->transform(fn ($user) => new UserResource($user));
+
+        if (method_exists($pagination, 'getCollection')) {
+            $pagination->getCollection()->transform(fn($user) => new UserResource($user));
+        }else{
+            $pagination = $pagination->map(fn($user) => new UserResource($user));
+        }
 
         return $pagination;
     }
