@@ -29,6 +29,7 @@ class Order extends Model
         'total_price',
         'cancellation_reason',
         'notes',
+        'invoiced',
     ];
 
     protected $casts = [

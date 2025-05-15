@@ -35,6 +35,7 @@ class OrderResource extends JsonResource
                 ],
             ],
             'total_quantity'  => $this->ordersProducts->sum('quantity'),
+            'invoiced'        => $this->invoiced,
         ];
     }
 }

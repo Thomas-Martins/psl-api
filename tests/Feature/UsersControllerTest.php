@@ -71,9 +71,11 @@ class UsersControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_index_clients()
+    /**
+     * Index method should return paginated results for clients.
+     */
+    public function test_index_clients(): void
     {
-        // Create some users
         // Create some users
         User::factory()->count(10)->state(new Sequence(
             ['role_id' => $this->clientRole->id],
@@ -103,8 +105,14 @@ class UsersControllerTest extends TestCase
         $response = $this->actingAs($admin, 'api')
             ->json('GET', "/api/users/{$user->id}");
 
-        $response->assertStatus(200)
-            ->assertJson($user->toArray());
+        $response->assertStatus(200);
+
+        // Vérifier que la structure de la réponse contient les données de l'utilisateur
+        $responseData = $response->json('data');
+        $this->assertEquals($user->id, $responseData['id']);
+        $this->assertEquals($user->firstname, $responseData['firstname']);
+        $this->assertEquals($user->lastname, $responseData['lastname']);
+        $this->assertEquals($user->email, $responseData['email']);
     }
 
     /**

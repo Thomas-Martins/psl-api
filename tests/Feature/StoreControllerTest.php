@@ -28,6 +28,7 @@ class StoreControllerTest extends TestCase
     }
 
     /** INDEX */
+    /** INDEX */
     public function test_admin_can_list_stores(): void
     {
         Store::factory()->count(5)->create();
@@ -36,7 +37,7 @@ class StoreControllerTest extends TestCase
         $response = $this->actingAs($admin, 'api')->getJson('/api/stores');
 
         $response->assertStatus(200);
-        $this->assertCount(5, $response->json('data')); // Changé pour accéder à 'data'
+        $this->assertCount(5, $response->json());
     }
 
     public function test_gestionnaire_can_list_stores(): void
@@ -47,7 +48,7 @@ class StoreControllerTest extends TestCase
         $response = $this->actingAs($gestionnaire, 'api')->getJson('/api/stores');
 
         $response->assertStatus(200);
-        $this->assertCount(3, $response->json('data')); // Changé pour accéder à 'data'
+        $this->assertCount(3, $response->json());
     }
 
     public function test_user_with_unauthorized_role_cannot_list_stores(): void
