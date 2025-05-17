@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -18,9 +19,15 @@ use App\Mail\OrderConfirmation;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\SendOrderConfirmationEmail;
+use Illuminate\Support\Facades\Storage;
 
 class OrdersController
 {
+    public function __construct(
+        private InvoiceService $invoiceService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -81,7 +88,7 @@ class OrdersController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateOrderRequest $request): JsonResponse
+    public function store(CreateOrderRequest $request)
     {
         try {
             $order = DB::transaction(function () use ($request) {
@@ -137,16 +144,14 @@ class OrdersController
             // Load relationships needed for the email
             $order->load(['ordersProducts', 'user.store']);
 
-            // Send confirmation email and handle failures separately
-            try {
-                Mail::to($order->user->email)->send(new OrderConfirmation(
-                    order: $order,
-                    userLocale: $request->input('locale', config('app.locale'))
-                ));
-            } catch (\Exception $e) {
-                Log::error('Order confirmation email failed: ' . $e->getMessage());
-                // Continue execution - don't let email failure affect the API response
+            $locale = $request->input('locale') ?? $request->query('locale') ?? config('app.locale');
+
+            if (!in_array($locale, ['fr', 'en'])) {
+                $locale = config('app.locale', 'fr');
             }
+
+            Mail::to($order->user->email)
+                ->send(new OrderConfirmation($order, $locale));
 
             return response()->json([
                 'message' => 'Order created successfully',
@@ -209,7 +214,10 @@ class OrdersController
         //
     }
 
-    public function printOrder(Order $order){
-
+    public function downloadInvoice(Request $request, Order $order)
+    {
+        $locale = $request->input('locale') ?? $request->query('locale') ?? $request->header('Accept-Language');
+        $order->load(['ordersProducts.product', 'user.store']);
+        return $this->invoiceService->generatePdfDownload($order, $locale);
     }
 }

@@ -26,7 +26,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     //COMMANDS
     Route::apiResource('/orders', OrdersController::class)->except(['update', 'destroy']);
-
+    Route::get('/orders/{order}/invoice', [OrdersController::class, 'downloadInvoice']);
     //CART
     Route::post('/carts', [CartController::class, 'store']);
     Route::delete('/carts/user/{user}', [CartController::class, 'deleteCartUser']);
