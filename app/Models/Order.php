@@ -5,18 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\App;
 
 class Order extends Model
 {
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
-
     const STATUS_COMPLETED = 'completed';
-
     const STATUS_CANCELLED = 'cancelled';
-
     const STATUS_SHIPPED = 'shipped';
 
+    /** VAT rate (20 %) – falls back to env/config value */
+    public const TAX_RATE = 0.20; // <- fallback only
 
     protected $fillable = [
         'user_id',
@@ -55,5 +55,46 @@ class Order extends Model
             self::STATUS_CANCELLED,
             self::STATUS_SHIPPED,
         ];
+    }
+
+    /**
+     * Get the applicable VAT rate for the current locale
+     */
+    private function taxRate(): float
+    {
+        $locale = App::getLocale();
+        return (float) config("tax.rates.{$locale}", config('tax.rate', self::TAX_RATE));
+    }
+
+    /**
+     * Calculate the order subtotal
+     */
+    public function calculateSubtotal(): float
+    {
+        $this->loadMissing('ordersProducts');
+
+        return round(
+            $this->ordersProducts->reduce(
+                fn (float $sum, $item) => $sum + ((float) $item->freeze_price) * (int) $item->quantity,
+                0.0
+            ),
+            2
+        );
+    }
+
+    /**
+     * Calculate the VAT amount
+     */
+    public function calculateTax(): float
+    {
+        return round($this->calculateSubtotal() * $this->taxRate(), 2);
+    }
+
+    /**
+     * Calculate the total amount including VAT
+     */
+    public function calculateTotal(): float
+    {
+        return round($this->calculateSubtotal() + $this->calculateTax(), 2);
     }
 }
