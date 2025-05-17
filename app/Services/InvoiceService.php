@@ -10,26 +10,26 @@ use Illuminate\Support\Facades\Log;
 class InvoiceService
 {
     /**
-     * Génère le PDF de la facture et le retourne comme une réponse de type stream
+     * Generates the invoice PDF and returns it as a stream response
      */
     public function generatePdfResponse(Order $order, string $locale)
     {
         $pdf = $this->generatePdf($order, $locale);
-        return $pdf->stream("facture-{$order->reference}.pdf");
+        return $pdf->stream($this->getFileName($order, $locale));
     }
 
     /**
-     * Génère le PDF de la facture et le retourne comme une réponse de téléchargement
+     * Generates the invoice PDF and returns it as a download response
      */
     public function generatePdfDownload(Order $order, string $locale)
     {
         $pdf = $this->generatePdf($order, $locale);
-        return $pdf->download("facture-{$order->reference}.pdf");
+        return $pdf->download($this->getFileName($order, $locale));
     }
 
     /**
-     * Génère le PDF et retourne son contenu sous forme de chaîne binaire
-     * Utile pour les emails ou le stockage
+     * Generates the PDF and returns its content as a binary string
+     * Useful for emails or storage
      */
     public function generatePdfString(Order $order, string $locale): string
     {
@@ -38,7 +38,27 @@ class InvoiceService
     }
 
     /**
-     * Génère le PDF à partir de la vue
+     * Generates the PDF filename based on the locale
+     */
+    public function getFileName(Order $order, string $locale): string
+    {
+        if (!in_array($locale, ['en', 'fr'])) {
+            $locale = config('app.locale', 'fr');
+        }
+
+        $currentLocale = App::getLocale();
+
+        App::setLocale($locale);
+
+        $prefix = __('invoice.file_prefix');
+
+        App::setLocale($currentLocale);
+
+        return "{$prefix}-{$order->reference}.pdf";
+    }
+
+    /**
+     * Generates the PDF from the view
      */
     private function generatePdf(Order $order, string $locale)
     {
@@ -56,64 +76,35 @@ class InvoiceService
             'order_id' => $order->id
         ]);
 
-        if ($locale && in_array($locale, ['en', 'fr'])) {
+        if (in_array($locale, ['en', 'fr'])) {
             App::setLocale($locale);
             Log::info('Setting locale to: ' . $locale);
         } else {
-            Log::warning('Invalid or missing locale: ' . ($locale ?? 'null') . ', using default: ' . $currentLocale);
+            Log::warning('Invalid or missing locale: ' . $locale . ', using default: ' . $currentLocale);
         }
 
-        $pdf = PDF::loadView('invoices.show', [
-            'order' => $order,
-            'locale' => $locale ?? $currentLocale
-        ]);
+        try {
+            $pdf = PDF::loadView('invoices.show', [
+                'order' => $order,
+                'locale' => $locale
+            ]);
 
-        $pdf->setPaper('a4');
-        $pdf->setOption('isHtml5ParserEnabled', true);
-        $pdf->setOption('isPhpEnabled', true);
-
-        if ($locale && in_array($locale, ['en', 'fr'])) {
-            App::setLocale($currentLocale);
+            $pdf->setPaper('a4');
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isPhpEnabled', true);
+        } catch (\Exception $e) {
+            Log::error('PDF generation failed', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new \RuntimeException('Failed to generate invoice PDF: ' . $e->getMessage(), 0, $e);
+        } finally {
+            if (in_array($locale, ['en', 'fr'])) {
+                App::setLocale($currentLocale);
+            }
         }
 
         return $pdf;
-    }
-
-    /**
-     * Retourne la vue HTML de la facture (pour prévisualisation)
-     */
-    public function generateHtml(Order $order, string $locale)
-    {
-        if (!$order->relationLoaded('ordersProducts') ||
-            !$order->relationLoaded('user') ||
-            !$order->user->relationLoaded('store')) {
-            $order->load(['ordersProducts.product', 'user.store']);
-        }
-
-        $currentLocale = App::getLocale();
-
-        Log::info('Invoice HTML view locale', [
-            'received_locale' => $locale,
-            'current_locale' => $currentLocale,
-            'order_id' => $order->id
-        ]);
-
-        if ($locale && in_array($locale, ['en', 'fr'])) {
-            App::setLocale($locale);
-            Log::info('Setting locale to: ' . $locale);
-        } else {
-            Log::warning('Invalid or missing locale: ' . ($locale ?? 'null') . ', using default: ' . $currentLocale);
-        }
-
-        $view = view('invoices.show', [
-            'order' => $order,
-            'locale' => $locale ?? $currentLocale
-        ]);
-
-        if ($locale && in_array($locale, ['en', 'fr'])) {
-            App::setLocale($currentLocale);
-        }
-
-        return $view;
     }
 }

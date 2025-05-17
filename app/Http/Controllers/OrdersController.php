@@ -4,23 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Resources\OrderResource;
-use App\Models\Carrier;
+use App\Jobs\SendOrderConfirmationEmail;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
-use App\Models\User;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Orders\CreateOrderRequest;
-use App\Mail\OrderConfirmation;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use App\Jobs\SendOrderConfirmationEmail;
-use Illuminate\Support\Facades\Storage;
 
 class OrdersController
 {
@@ -150,8 +144,14 @@ class OrdersController
                 $locale = config('app.locale', 'fr');
             }
 
-            Mail::to($order->user->email)
-                ->send(new OrderConfirmation($order, $locale));
+            try {
+                SendOrderConfirmationEmail::dispatch($order, $locale);
+            } catch (\Exception $e) {
+                Log::error('Failed to send order confirmation email', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
 
             return response()->json([
                 'message' => 'Order created successfully',
@@ -216,8 +216,28 @@ class OrdersController
 
     public function downloadInvoice(Request $request, Order $order)
     {
+        if ($order->user_id !== Auth::user()->id &&
+            Auth::user()->role !== Role::ADMIN &&
+            Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
         $locale = $request->input('locale') ?? $request->query('locale') ?? $request->header('Accept-Language');
         $order->load(['ordersProducts.product', 'user.store']);
-        return $this->invoiceService->generatePdfDownload($order, $locale);
+
+        try {
+            return $this->invoiceService->generatePdfDownload($order, $locale);
+        } catch (\Exception $e) {
+            Log::error('Invoice download failed', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json([
+                'message' => 'Failed to generate invoice',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 }

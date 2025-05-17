@@ -18,21 +18,21 @@ class SendOrderConfirmationEmail implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * Le nombre de tentatives maximum pour le job.
+     * The maximum number of attempts for the job.
      *
      * @var int
      */
     public $tries = 3;
 
     /**
-     * Le nombre de secondes à attendre avant de retenter.
+     * The number of seconds to wait before retrying.
      *
      * @var array
      */
     public $backoff = [60, 300, 600]; // 1min, 5min, 10min
 
     /**
-     * La locale pour la facture
+     * The locale for the invoice
      *
      * @var string
      */
@@ -59,6 +59,14 @@ class SendOrderConfirmationEmail implements ShouldQueue
         try {
             $this->order->load(['ordersProducts.product', 'user.store']);
 
+            if (!$this->order->user) {
+                Log::warning('Order has no associated user – skipping email sending.', [
+                    'order_id' => $this->order->id,
+                    'reference' => $this->order->reference
+                ]);
+                return;
+            }
+
             if ($this->order->user && $this->order->user->store) {
                 $this->order->user->store->name = mb_convert_encoding($this->order->user->store->name, 'UTF-8', 'auto');
                 $this->order->user->store->address = mb_convert_encoding($this->order->user->store->address, 'UTF-8', 'auto');
@@ -66,12 +74,10 @@ class SendOrderConfirmationEmail implements ShouldQueue
             }
 
             Log::info('Order relations loaded successfully');
-
             Log::info('Sending email to: ' . $this->order->user->email);
-            $mail = new OrderConfirmation($this->order, $this->locale);
 
-            Mail::to($this->order->user->email)
-                ->send($mail);
+            $mail = new OrderConfirmation($this->order, $this->locale);
+            Mail::to($this->order->user->email)->send($mail);
 
             Log::info('Email sent successfully');
 

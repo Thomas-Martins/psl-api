@@ -10,13 +10,11 @@ class Order extends Model
 {
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
-
     const STATUS_COMPLETED = 'completed';
-
     const STATUS_CANCELLED = 'cancelled';
-
     const STATUS_SHIPPED = 'shipped';
 
+    const TAX_RATE = 0.20;
 
     protected $fillable = [
         'user_id',
@@ -55,5 +53,31 @@ class Order extends Model
             self::STATUS_CANCELLED,
             self::STATUS_SHIPPED,
         ];
+    }
+
+    /**
+     * Calculates the order subtotal
+     */
+    public function calculateSubtotal(): float
+    {
+        return $this->ordersProducts->sum(function($item) {
+            return $item->freeze_price * $item->quantity;
+        });
+    }
+
+    /**
+     * Calculates the VAT amount
+     */
+    public function calculateTax(): float
+    {
+        return $this->calculateSubtotal() * self::TAX_RATE;
+    }
+
+    /**
+     * Calculates the total amount including VAT
+     */
+    public function calculateTotal(): float
+    {
+        return $this->calculateSubtotal() + $this->calculateTax();
     }
 }

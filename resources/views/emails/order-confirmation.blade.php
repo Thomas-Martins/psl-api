@@ -34,15 +34,15 @@
         <table style="width: 100%; margin: 20px 0; border-collapse: collapse;">
             <tr>
                 <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6;">{{ __('emails.order.subtotal') }}</th>
-                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;">{{ number_format($order->total_price, 2) }} €</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;">{{ number_format($order->calculateSubtotal(), 2) }} €</td>
             </tr>
             <tr>
-                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6;">{{ __('emails.order.vat') }} (20%)</th>
-                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;">{{ number_format($order->total_price * 0.20, 2) }} €</td>
+                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6;">{{ __('emails.order.vat') }} ({{ number_format($order::TAX_RATE * 100) }}%)</th>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;">{{ number_format($order->calculateTax(), 2) }} €</td>
             </tr>
             <tr>
                 <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6;">{{ __('emails.order.total') }}</th>
-                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;"><strong>{{ number_format($order->total_price * 1.20, 2) }} €</strong></td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;"><strong>{{ number_format($order->calculateTotal(), 2) }} €</strong></td>
             </tr>
         </table>
 

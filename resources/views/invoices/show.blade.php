@@ -43,17 +43,7 @@
         .main-content {
             margin-top: 40px;
         }
-        .client-info, .delivery-info {
-            margin-bottom: 0;
-            font-size: 10px;
-        }
-        .info-row {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 40px;
-        }
+
         .section-title {
             font-size: 12px;
             font-weight: bold;
@@ -75,26 +65,6 @@
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #dee2e6;
-        }
-        .amount-column {
-            text-align: right;
-        }
-        .totals {
-            width: 350px;
-            margin-left: auto;
-        }
-        .totals-row {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            padding: 8px 0;
-        }
-        .total-due {
-            font-weight: bold;
-            font-size: 18px;
-            border-top: 2px solid #333;
-            margin-top: 10px;
-            padding-top: 10px;
         }
     </style>
 </head>
@@ -118,7 +88,7 @@
     <div class="line"></div>
 
     <div class="main-content">
-        <table width="100%" style="margin-bottom: 40px;">
+        <table style="margin-bottom: 40px;">
             <tr>
                 <td style="vertical-align: top; width: 48%; border-bottom: none;">
                     <div class="section-title">{{ __('invoice.client') }}</div>
@@ -157,29 +127,20 @@
                 @endforeach
             </tbody>
         </table>
-
-        @php
-            $subtotal = $order->ordersProducts->sum(function($item) {
-                return $item->freeze_price * $item->quantity;
-            });
-            $tax = $subtotal * 0.20;
-            $total = $subtotal + $tax;
-        @endphp
-
-        <table width="350" align="right" style="margin-top: 20px; font-size: 10px;">
+        <table style="margin-top: 20px; font-size: 10px;">
             <tr>
                 <td style="text-align: left; border-bottom: none;">{{ __('invoice.subtotal') }}</td>
-                <td style="text-align: right; border-bottom: none;">{{ number_format($subtotal, 2) }} €</td>
+                <td style="text-align: right; border-bottom: none;">{{ number_format($order->calculateSubtotal(), 2) }} €</td>
             </tr>
             <tr>
-                <td style="text-align: left; border-bottom: none;">{{ __('invoice.vat') }} (20%)</td>
-                <td style="text-align: right; border-bottom: none;">{{ number_format($tax, 2) }} €</td>
+                <td style="text-align: left; border-bottom: none;">{{ __('invoice.vat') }} ({{ number_format($order::TAX_RATE * 100) }}%)</td>
+                <td style="text-align: right; border-bottom: none;">{{ number_format($order->calculateTax(), 2) }} €</td>
             </tr>
             <tr>
                 <td style="text-align: left; font-weight: bold; font-size: 12px; border-top: 2px solid #333; padding-top: 10px; border-bottom: none;">{{ __('invoice.total_vat_included') }}</td>
-                <td style="text-align: right; font-weight: bold; font-size: 12px; border-top: 2px solid #333; padding-top: 10px; border-bottom: none;">{{ number_format($total, 2) }} €</td>
+                <td style="text-align: right; font-weight: bold; font-size: 12px; border-top: 2px solid #333; padding-top: 10px; border-bottom: none;">{{ number_format($order->calculateTotal(), 2) }} €</td>
             </tr>
         </table>
     </div>
 </body>
-</html> 
+</html>

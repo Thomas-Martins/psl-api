@@ -22,7 +22,7 @@ class OrderConfirmation extends Mailable implements ShouldQueue
     public $order;
 
     /**
-     * La langue pour cet email.
+     * The language for this email.
      *
      * @var string
      */
@@ -97,15 +97,30 @@ class OrderConfirmation extends Mailable implements ShouldQueue
             ]);
 
         try {
-            $pdf = app(InvoiceService::class)->generatePdfString($this->order, $this->emailLocale);
+            Log::info('Starting PDF generation for order: ' . $this->order->reference);
+
+            $invoiceService = app(InvoiceService::class);
+            $pdf = $invoiceService->generatePdfString($this->order, $this->emailLocale);
+
+            if (empty($pdf)) {
+                throw new \Exception('Generated PDF is empty');
+            }
+
+            Log::info('PDF generated successfully, size: ' . strlen($pdf) . ' bytes');
+
+            $fileName = $invoiceService->getFileName($this->order, $this->emailLocale);
+            Log::info('Attaching PDF with filename: ' . $fileName);
 
             $mailable->attachData(
                 $pdf,
-                "facture-{$this->order->reference}.pdf",
+                $fileName,
                 ['mime' => 'application/pdf']
             );
+
+            Log::info('PDF attached successfully to email');
         } catch (\Exception $e) {
-            Log::error('Failed to generate invoice PDF for email: ' . $e->getMessage());
+            Log::error('Failed to generate or attach invoice PDF: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
         }
 
         return $mailable;
