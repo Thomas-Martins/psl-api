@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\App;
 
 class Order extends Model
 {
@@ -14,7 +15,8 @@ class Order extends Model
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_SHIPPED = 'shipped';
 
-    const TAX_RATE = 0.20;
+    /** VAT rate (20 %) – falls back to env/config value */
+    public const TAX_RATE = 0.20; // <- fallback only
 
     protected $fillable = [
         'user_id',
@@ -56,28 +58,43 @@ class Order extends Model
     }
 
     /**
-     * Calculates the order subtotal
+     * Get the applicable VAT rate for the current locale
+     */
+    private function taxRate(): float
+    {
+        $locale = App::getLocale();
+        return (float) config("tax.rates.{$locale}", config('tax.rate', self::TAX_RATE));
+    }
+
+    /**
+     * Calculate the order subtotal
      */
     public function calculateSubtotal(): float
     {
-        return $this->ordersProducts->sum(function($item) {
-            return $item->freeze_price * $item->quantity;
-        });
+        $this->loadMissing('ordersProducts');
+
+        return round(
+            $this->ordersProducts->reduce(
+                fn (float $sum, $item) => $sum + ((float) $item->freeze_price) * (int) $item->quantity,
+                0.0
+            ),
+            2
+        );
     }
 
     /**
-     * Calculates the VAT amount
+     * Calculate the VAT amount
      */
     public function calculateTax(): float
     {
-        return $this->calculateSubtotal() * self::TAX_RATE;
+        return round($this->calculateSubtotal() * $this->taxRate(), 2);
     }
 
     /**
-     * Calculates the total amount including VAT
+     * Calculate the total amount including VAT
      */
     public function calculateTotal(): float
     {
-        return $this->calculateSubtotal() + $this->calculateTax();
+        return round($this->calculateSubtotal() + $this->calculateTax(), 2);
     }
 }

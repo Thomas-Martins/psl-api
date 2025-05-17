@@ -62,12 +62,16 @@ class InvoiceService
      */
     private function generatePdf(Order $order, string $locale)
     {
-        if (!$order->relationLoaded('ordersProducts') ||
+        // Ensure all required relations are loaded safely
+        if (
+            !$order->relationLoaded('ordersProducts') ||
             !$order->relationLoaded('user') ||
-            !$order->user->relationLoaded('store')) {
-            $order->load(['ordersProducts.product', 'user.store']);
+            optional($order->user)->relationLoaded('store') === false
+        ) {
+            $order->loadMissing(['ordersProducts.product', 'user.store']);
         }
 
+        // Set temporary locale for this request
         $currentLocale = App::getLocale();
 
         Log::info('Invoice service locale', [
@@ -76,19 +80,22 @@ class InvoiceService
             'order_id' => $order->id
         ]);
 
+        // Ensure locale is valid and available
         if (in_array($locale, ['en', 'fr'])) {
             App::setLocale($locale);
             Log::info('Setting locale to: ' . $locale);
         } else {
-            Log::warning('Invalid or missing locale: ' . $locale . ', using default: ' . $currentLocale);
+            Log::warning('Invalid locale: ' . $locale . ', using default: ' . $currentLocale);
         }
 
         try {
+            // Specific PDF configuration
             $pdf = PDF::loadView('invoices.show', [
                 'order' => $order,
-                'locale' => $locale
+                'locale' => $locale ?? $currentLocale
             ]);
 
+            // Options to improve quality and compatibility
             $pdf->setPaper('a4');
             $pdf->setOption('isHtml5ParserEnabled', true);
             $pdf->setOption('isPhpEnabled', true);
@@ -100,6 +107,7 @@ class InvoiceService
             ]);
             throw new \RuntimeException('Failed to generate invoice PDF: ' . $e->getMessage(), 0, $e);
         } finally {
+            // Restore original locale
             if (in_array($locale, ['en', 'fr'])) {
                 App::setLocale($currentLocale);
             }
@@ -107,4 +115,5 @@ class InvoiceService
 
         return $pdf;
     }
+
 }
