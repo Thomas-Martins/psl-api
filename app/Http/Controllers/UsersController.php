@@ -14,6 +14,7 @@ use App\Services\PasswordGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -143,13 +144,20 @@ class UsersController
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        $request->validated();
+        $data = $request->validated();
 
         if(Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $user->update($request->all());
+        if (isset($data['password'])) {
+            if (!Hash::check($data['password'], $user->password)) {
+                return response()->json(['message' => 'Something gone wrong.'], 422);
+            }
+
+            $data['password'] = Hash::make($data['password']);
+            $user->update($request->all());
+        }
 
         return response()->json($user, 200);
     }
