@@ -33,9 +33,10 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/carts/user/{user}', [CartController::class, 'showCartUser']);
 
     //USERS
-    Route::put('/users/{user}', [UsersController::class, 'update']);
-    Route::post('/users/{user}/upload-image', [UsersController::class, 'updateUserImage']);
     Route::get('/users/{user}', [UsersController::class, 'show']);
+    Route::put('/users/{user}', [UsersController::class, 'update']);
+    Route::put('/users/{user}/update-password', [UsersController::class, 'updateUserPassword']);
+    Route::post('/users/{user}/upload-image', [UsersController::class, 'updateUserImage']);
 
     //ADMIN ROUTES
     Route::group(['middleware' => ['roles:admin']], function () {

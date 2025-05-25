@@ -13,7 +13,7 @@ class PasswordGeneratorService
     public function generate(int $length = 12): string
     {
         // Ensure minimum length for security
-        $length = max(8, $length);
+        $length = max(12, $length);
 
         $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $lowercase = 'abcdefghijklmnopqrstuvwxyz';
@@ -21,7 +21,7 @@ class PasswordGeneratorService
         $specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
         $password = '';
-        
+
         // Ensure at least one character from each set
         $password .= $uppercase[random_int(0, strlen($uppercase) - 1)];
         $password .= $lowercase[random_int(0, strlen($lowercase) - 1)];
@@ -39,4 +39,4 @@ class PasswordGeneratorService
         // Shuffle the password to make it more random
         return str_shuffle($password);
     }
-} 
+}
