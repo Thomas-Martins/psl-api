@@ -39,7 +39,6 @@ class UpdateUserRequest extends FormRequest
             'zipcode' => ['sometimes', 'string', 'max:5'],
             'city' => ['sometimes', 'string', 'max:100'],
             'role_id' => ['sometimes', 'integer', 'exists:roles,id'],
-            'password' => ['required', 'string', 'min:8'],
         ];
     }
 

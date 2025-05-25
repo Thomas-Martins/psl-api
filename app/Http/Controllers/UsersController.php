@@ -209,4 +209,31 @@ class UsersController
             return response()->json(['message' => 'Error uploading image'], 500);
         }
     }
+
+    public function updateUserPassword(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+            'current_password' => 'required|string',
+        ]);
+
+        if(Auth::id() !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (!Hash::check($data['current_password'], $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 422);
+        }
+
+        try {
+            $user->update(['password' => Hash::make($data['password'])]);
+
+            return response()->json(['message' => 'Password updated successfully'], 200);
+        } catch (\Exception $e) {
+            Log::error('Password update failed: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
+            return response()->json(['message' => 'Error updating password'], 500);
+        }
+    }
 }
