@@ -144,20 +144,13 @@ class UsersController
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        $data = $request->validated();
+        $request->validated();
 
         if(Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if (isset($data['password'])) {
-            if (!Hash::check($data['password'], $user->password)) {
-                return response()->json(['message' => 'Something gone wrong.'], 422);
-            }
-
-            $data['password'] = Hash::make($data['password']);
-            $user->update($request->all());
-        }
+        $user->update($request->all());
 
         return response()->json($user, 200);
     }
@@ -213,7 +206,7 @@ class UsersController
     public function updateUserPassword(Request $request, User $user)
     {
         $data = $request->validate([
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:12|confirmed',
             'current_password' => 'required|string',
         ]);
 
