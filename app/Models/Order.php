@@ -58,13 +58,7 @@ class Order extends Model
 
     public function statusLabels(): array
     {
-        return [
-            self::STATUS_PENDING,
-            self::STATUS_PROCESSING,
-            self::STATUS_COMPLETED,
-            self::STATUS_CANCELLED,
-            self::STATUS_SHIPPED,
-        ];
+        return self::STATUS_VALUES;
     }
 
     /**
