@@ -203,7 +203,23 @@ class OrdersController
      */
     public function update(Request $request, Order $order)
     {
-        //
+        if (Auth::user()->role !== Role::ADMIN &&
+            Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:' . implode(',', Order::STATUS_VALUES),
+        ]);
+
+        $order->update($validated);
+
+        return response()->json([
+            'message' => 'Order updated successfully',
+            'data' => new OrderResource($order),
+        ], 200);
     }
 
     /**

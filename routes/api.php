@@ -45,6 +45,9 @@ Route::group(['middleware' => ['auth:api']], function () {
 
         //ROLES
         Route::apiResource('/roles', RolesController::class);
+
+        //COMMANDS
+        Route::apiResource('/orders', OrdersController::class)->only(['update']);
     });
 
     //Admin and Gestionnaire routes

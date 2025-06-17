@@ -9,14 +9,24 @@ use Illuminate\Support\Facades\App;
 
 class Order extends Model
 {
+
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_SHIPPED = 'shipped';
 
+    const STATUS_VALUES = [
+        self::STATUS_PENDING,
+        self::STATUS_PROCESSING,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+        self::STATUS_SHIPPED,
+    ];
+
     /** VAT rate (20 %) – falls back to env/config value */
     public const TAX_RATE = 0.20; // <- fallback only
+
 
     protected $fillable = [
         'user_id',
