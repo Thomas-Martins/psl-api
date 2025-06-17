@@ -183,11 +183,6 @@ class OrdersController
                 'message' => 'Order not found',
             ], 404);
         }
-        if($order->user_id !== Auth::user()->id && Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
 
         $order->load('ordersProducts.product');
 
@@ -203,7 +198,23 @@ class OrdersController
      */
     public function update(Request $request, Order $order)
     {
-        //
+        if (Auth::user()->role !== Role::ADMIN &&
+            Auth::user()->role !== Role::GESTIONNAIRE) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:' . implode(',', Order::STATUS_VALUES),
+        ]);
+
+        $order->update($validated);
+
+        return response()->json([
+            'message' => 'Order updated successfully',
+            'data' => new OrderResource($order),
+        ], 200);
     }
 
     /**

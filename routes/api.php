@@ -45,10 +45,14 @@ Route::group(['middleware' => ['auth:api']], function () {
 
         //ROLES
         Route::apiResource('/roles', RolesController::class);
+
     });
 
     //Admin and Gestionnaire routes
     Route::group(['middleware' => ['roles:admin,gestionnaire']], function () {
+        //COMMANDS
+        Route::apiResource('/orders', OrdersController::class)->only(['update']);
+
         //PRODUCTS
         Route::apiResource('/products', ProductsController::class)->except(['index', 'show']);
 
