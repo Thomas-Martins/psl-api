@@ -37,9 +37,6 @@ class UsersSeeder extends Seeder
             'password' => bcrypt('password'),
             'role_id' => 1,
             'phone' => '0606060606',
-            'address' => '1 rue de la paix',
-            'city' => 'Paris',
-            'zipcode' => '75000',
             'remember_token' => Str::random(10),
         ]);
     }

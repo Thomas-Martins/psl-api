@@ -15,6 +15,7 @@ class UsersControllerTest extends TestCase
     protected Role $adminRole;
     protected Role $userRole;
     protected Role $clientRole;
+    protected Role $gestionnaireRole;
 
 
     protected function setUp(): void
@@ -41,6 +42,7 @@ class UsersControllerTest extends TestCase
         ))->create();
 
         // Connect as admin
+        /** @var User $admin */
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
 
         $response = $this->actingAs($admin, 'api')
@@ -63,6 +65,7 @@ class UsersControllerTest extends TestCase
         ))->create();
 
         // Connect as non-admin
+        /** @var User $nonAdmin */
         $nonAdmin = User::factory()->create(['role_id' => $this->userRole->id]);
 
         $response = $this->actingAs($nonAdmin, 'api')
@@ -82,6 +85,7 @@ class UsersControllerTest extends TestCase
         ))->create();
 
         // Connect as admin
+        /** @var User $admin */
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
 
         $response = $this->actingAs($admin, 'api')
@@ -97,9 +101,11 @@ class UsersControllerTest extends TestCase
     public function test_show_user_admin(): void
     {
         // Create a user
+        /** @var User $user */
         $user = User::factory()->create();
 
         // Connect as admin
+        /** @var User $admin */
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
 
         $response = $this->actingAs($admin, 'api')
@@ -121,9 +127,11 @@ class UsersControllerTest extends TestCase
     public function test_show_user_non_admin(): void
     {
         // Create a user
+        /** @var User $user */
         $user = User::factory()->create();
 
         // Connect as non-admin
+        /** @var User $nonAdmin */
         $nonAdmin = User::factory()->create(['role_id' => $this->userRole->id]);
 
         $response = $this->actingAs($nonAdmin, 'api')
@@ -138,20 +146,18 @@ class UsersControllerTest extends TestCase
     public function test_store_user_admin(): void
     {
         // Connect as admin
+        /** @var User $admin */
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
 
         // Create a user
         $response = $this->actingAs($admin, 'api')
-            ->json('POST','/api/users', [
+            ->json('POST', '/api/users', [
                 'lastname' => 'Doe',
                 'firstname' => 'John',
                 'email' => 'john.doe@psl.fr',
                 'password' => 'password',
                 'role_id' => $this->userRole->id,
                 'phone' => '0123456789',
-                'address' => '1 rue de Paris',
-                'city' => 'Paris',
-                'zipcode' => '75000',
             ]);
 
         $response->assertStatus(201);
@@ -163,19 +169,17 @@ class UsersControllerTest extends TestCase
     public function test_store_user_non_admin(): void
     {
         // Connect as admin
+        /** @var User $user */
         $user = User::factory()->create(['role_id' => $this->userRole->id]);
         // Create a user
         $response = $this->actingAs($user, 'api')
-            ->json('POST','/api/users', [
+            ->json('POST', '/api/users', [
                 'lastname' => 'Doe',
                 'firstname' => 'John',
                 'email' => 'john.doe@psl.fr',
                 'password' => 'password',
                 'role_id' => $this->userRole->id,
                 'phone' => '0123456789',
-                'address' => '1 rue de Paris',
-                'city' => 'Paris',
-                'zipcode' => '75000',
             ]);
 
         $response->assertStatus(403);
@@ -187,23 +191,22 @@ class UsersControllerTest extends TestCase
     public function test_update_user_admin(): void
     {
         // Create a user
+        /** @var User $user */
         $user = User::factory()->create();
 
         // Connect as admin
+        /** @var User $admin */
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
 
         // Update the user
         $response = $this->actingAs($admin, 'api')
-            ->json('PUT',"/api/users/{$user->id}", [
+            ->json('PUT', "/api/users/{$user->id}", [
                 'lastname' => 'Doe',
                 'firstname' => 'John',
                 'email' => $user->email,
                 'password' => 'password',
                 'role_id' => $this->userRole->id,
                 'phone' => '0123456789',
-                'address' => '1 rue de Paris',
-                'city' => 'Paris',
-                'zipcode' => '75000',
             ]);
 
         $response->assertStatus(200);
@@ -215,23 +218,22 @@ class UsersControllerTest extends TestCase
     public function test_update_user_non_admin(): void
     {
         // Create a user
+        /** @var User $user */
         $user = User::factory()->create();
 
         // Connect as non-admin
+        /** @var User $nonAdmin */
         $nonAdmin = User::factory()->create(['role_id' => $this->userRole->id]);
 
         // Update the user
         $response = $this->actingAs($nonAdmin, 'api')
-            ->json('PUT',"/api/users/{$user->id}", [
+            ->json('PUT', "/api/users/{$user->id}", [
                 'lastname' => 'Doe',
                 'firstname' => 'John',
                 'email' => $user->email,
                 'password' => 'password',
                 'role_id' => $this->userRole->id,
                 'phone' => '0123456789',
-                'address' => '1 rue de Paris',
-                'city' => 'Paris',
-                'zipcode' => '75000',
             ]);
 
         $response->assertStatus(403);
@@ -243,14 +245,16 @@ class UsersControllerTest extends TestCase
     public function test_destroy_user_admin(): void
     {
         // Create a user
+        /** @var User $user */
         $user = User::factory()->create();
 
         // Connect as admin
+        /** @var User $admin */
         $admin = User::factory()->create(['role_id' => $this->adminRole->id]);
 
         // Delete the user
         $response = $this->actingAs($admin, 'api')
-            ->json('DELETE',"/api/users/{$user->id}");
+            ->json('DELETE', "/api/users/{$user->id}");
 
         $response->assertStatus(204);
     }
@@ -261,16 +265,17 @@ class UsersControllerTest extends TestCase
     public function test_destroy_user_non_admin(): void
     {
         // Create a user
+        /** @var User $user */
         $user = User::factory()->create();
 
         // Connect as non-admin
+        /** @var User $nonAdmin */
         $nonAdmin = User::factory()->create(['role_id' => $this->userRole->id]);
 
         // Delete the user
         $response = $this->actingAs($nonAdmin, 'api')
-            ->json('DELETE',"/api/users/{$user->id}");
+            ->json('DELETE', "/api/users/{$user->id}");
 
         $response->assertStatus(403);
     }
-
 }

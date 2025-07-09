@@ -95,7 +95,6 @@
                     <div>{{ $order->user->identity }}</div>
                     <div>{{ $order->user->email }}</div>
                     <div>{{ $order->user->phone }}</div>
-                    <div>{{ $order->user->full_address }}</div>
                 </td>
                 <td style="vertical-align: top; width: 48%; border-bottom: none;">
                     <div class="section-title">{{ __('invoice.delivery_address') }}</div>
