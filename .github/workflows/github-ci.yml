@@ -67,7 +67,8 @@ jobs:
     if: github.event_name == 'push' && needs.tests.result == 'success'
     steps:
       - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@master
+        # Pin to the latest stable tag (adjust when a newer one is released)
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
