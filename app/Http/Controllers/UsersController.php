@@ -37,7 +37,7 @@ class UsersController
                 $q->where('name', '!=', Role::CLIENT);
             });
 
-            if($request->has('role') && $request->role !== 'all') {
+            if ($request->has('role') && $request->role !== 'all') {
                 $users->whereHas('role', function ($q) use ($request) {
                     $q->where('name', $request->role);
                 });
@@ -64,7 +64,7 @@ class UsersController
 
         if (method_exists($pagination, 'getCollection')) {
             $pagination->getCollection()->transform(fn($user) => new UserResource($user));
-        }else{
+        } else {
             $pagination = $pagination->map(fn($user) => new UserResource($user));
         }
 
@@ -78,7 +78,7 @@ class UsersController
     {
         $data = $request->validated();
 
-        if(Auth::user()->role !== Role::ADMIN) {
+        if (Auth::user()->role !== Role::ADMIN) {
             return response()->json(['message' => 'Unauthorized'], 405);
         }
 
@@ -95,17 +95,16 @@ class UsersController
             });
 
             Mail::to($user->email)
-            ->locale($data['locale'] ?? config('app.locale'))
-            ->send(new WelcomeWithPassword(
-                user:     $user,
-                password: $password,
-            ));
+                ->locale($data['locale'] ?? config('app.locale'))
+                ->send(new WelcomeWithPassword(
+                    user: $user,
+                    password: $password,
+                ));
 
             return response()->json([
                 'message' => 'User created successfully',
                 'data' => $user
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -132,9 +131,11 @@ class UsersController
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if($request->has('withOrders')) {
-            $user->load('orders', 'store');
+        if ($request->has('withOrders')) {
+            $user->load('orders');
         }
+
+        $user->load('store');
 
         return new UserResource($user);
     }
@@ -146,7 +147,7 @@ class UsersController
     {
         $request->validated();
 
-        if(Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
+        if (Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -160,7 +161,7 @@ class UsersController
      */
     public function destroy(User $user)
     {
-        if(Auth::user()->role !== 'admin') {
+        if (Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 405);
         }
 
@@ -171,7 +172,7 @@ class UsersController
 
     public function updateUserImage(User $user)
     {
-        if(Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
+        if (Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -188,7 +189,7 @@ class UsersController
         try {
             $newPath = (new ImageUploadService())->upload($image, 'users', 'user');
 
-            DB::transaction(function() use ($user, $newPath) {
+            DB::transaction(function () use ($user, $newPath) {
                 $oldPath = $user->image_path;
                 $user->update(['image_path' => $newPath]);
 
@@ -198,7 +199,7 @@ class UsersController
             });
 
             return response()->json($user->refresh(), 200);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Error uploading image'], 500);
         }
     }
@@ -210,7 +211,7 @@ class UsersController
             'current_password' => 'required|string',
         ]);
 
-        if(Auth::id() !== $user->id) {
+        if (Auth::id() !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

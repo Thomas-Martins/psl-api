@@ -24,9 +24,6 @@ class User extends Authenticatable
         'lastname',
         'email',
         'phone',
-        'address',
-        'zipcode',
-        'city',
         'email_verified_at',
         'password',
         'role_id',
@@ -50,8 +47,7 @@ class User extends Authenticatable
         'role',
         'image_url',
         'store',
-        'orders_count',
-        'full_address'
+        'orders_count'
     ];
 
     /**
@@ -93,7 +89,6 @@ class User extends Authenticatable
     {
         return $this->lastname . ' ' . $this->firstname;
     }
-
     public function getImageUrlAttribute(): string
     {
         return $this->image_path ? Storage::disk('public')->url($this->image_path) : '';
@@ -107,10 +102,5 @@ class User extends Authenticatable
     public function getOrdersCountAttribute(): int
     {
         return $this->orders()->count();
-    }
-
-    public function getFullAddressAttribute(): string
-    {
-        return $this->address . ', ' . $this->zipcode . ' ' . $this->city;
     }
 }

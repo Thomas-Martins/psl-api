@@ -35,9 +35,6 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'phone' => ['sometimes', 'string', 'max:20'],
-            'address' => ['sometimes', 'string', 'max:255'],
-            'zipcode' => ['sometimes', 'string', 'max:5'],
-            'city' => ['sometimes', 'string', 'max:100'],
             'role_id' => ['sometimes', 'integer', 'exists:roles,id'],
         ];
     }

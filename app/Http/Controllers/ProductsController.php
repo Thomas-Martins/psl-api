@@ -30,29 +30,31 @@ class ProductsController
             'priceRange'       => 'sometimes|array|size:2',
             'priceRange.*'     => 'sometimes|numeric|min:0',
             'categoryId'       => 'sometimes|integer|exists:categories,id',
+            'categories'       => 'sometimes|array',
+            'categories.*'     => 'sometimes|integer|exists:categories,id',
         ]);
 
         $products = Product::query()->with(['category', 'supplier']);
 
         if (!empty($validated['search'])) {
-            $products->where('name', 'like', '%'.$validated['search'].'%');
+            $products->where('name', 'like', '%' . $validated['search'] . '%');
         }
 
         if ($request->filled('categories')) {
             $catsParam = $request->input('categories');
 
             if (is_string($catsParam)) {
-                $names = explode(',', $catsParam);
+                $ids = explode(',', $catsParam);
             } elseif (is_array($catsParam)) {
-                $names = $catsParam;
+                $ids = $catsParam;
             } else {
-                $names = [];
+                $ids = [];
             }
 
-            $names = array_filter(array_map('trim', $names));
+            $ids = array_filter(array_map('trim', $ids));
+            $ids = array_filter($ids, 'is_numeric');
 
-            if (!empty($names)) {
-                $ids = Category::whereIn('name', $names)->pluck('id');
+            if (!empty($ids)) {
                 $products->whereIn('category_id', $ids);
             }
         }
@@ -84,7 +86,7 @@ class ProductsController
     {
         $data = $request->validated();
 
-        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+        if (Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -98,7 +100,6 @@ class ProductsController
         }
 
         return response()->json(['message' => 'Product created', 'product' => $product], 201);
-
     }
 
     /**
@@ -116,25 +117,23 @@ class ProductsController
     {
         $data = $request->validated();
 
-        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+        if (Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         try {
             if ($request->has('addStock')) {
                 if (!isset($data['stock']) || !is_numeric($data['stock'])) {
-                                       return response()->json(['message' => 'Stock value is required and must be numeric'], 422);
+                    return response()->json(['message' => 'Stock value is required and must be numeric'], 422);
                 }
                 $product->increment('stock', $data['stock']);
                 return response()->json(['message' => 'Stock updated', 'product' => $product], 200);
-
-            }else{
+            } else {
                 if (isset($data['image']) && !is_null($data['image'])) {
                     $data['image_path'] = (new ImageUploadService())->upload($data['image'], 'products', 'product');
                 }
                 $product->update($data);
             }
-
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de la mise à jour du produit'], 500);
         }
@@ -147,7 +146,7 @@ class ProductsController
      */
     public function destroy(Product $product): JsonResponse
     {
-        if(Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
+        if (Auth::user()->role !== Role::ADMIN && Auth::user()->role !== Role::GESTIONNAIRE) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -184,7 +183,7 @@ class ProductsController
                 }
             });
             return response()->json($product->refresh(), 200);
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Error uploading image'], 500);
         }
     }

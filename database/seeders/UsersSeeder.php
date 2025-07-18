@@ -21,7 +21,7 @@ class UsersSeeder extends Seeder
         $storeIds = Store::factory(20)->create()->pluck('id')->toArray();
 
         User::factory(50)->create([
-            'role_id' => fn () => $roleIds[array_rand($roleIds)],
+            'role_id' => fn() => $roleIds[array_rand($roleIds)],
 
             'store_id' => function (array $attributes) use ($storeIds) {
                 return $attributes['role_id'] === 4
@@ -30,17 +30,27 @@ class UsersSeeder extends Seeder
             },
         ]);
 
+        //Admin psl thomas
         User::factory()->create([
             'firstname' => 'Thomas',
             'lastname' => 'Martins',
-            'email' => 'test@psl.fr',
+            'email' => 'thomas@psl.fr',
             'password' => bcrypt('password'),
             'role_id' => 1,
             'phone' => '0606060606',
-            'address' => '1 rue de la paix',
-            'city' => 'Paris',
-            'zipcode' => '75000',
             'remember_token' => Str::random(10),
+        ]);
+
+        //Customer thomas
+        User::factory()->create([
+            'firstname' => 'Thomas',
+            'lastname' => 'Martins',
+            'email' => 'thomas@example.fr',
+            'password' => bcrypt('password'),
+            'role_id' => 4,
+            'phone' => '0606060606',
+            'remember_token' => Str::random(10),
+            'store_id' => $storeIds[array_rand($storeIds)],
         ]);
     }
 }
