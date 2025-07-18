@@ -18,7 +18,7 @@ class Store extends Model
         'siret',
     ];
 
-    protected $appends = ['full_address'];
+    protected $appends = ['full_address', 'customers_count'];
 
     public function customers()
     {
@@ -30,4 +30,8 @@ class Store extends Model
         return $this->address . ', ' . $this->zipcode . ' ' . $this->city;
     }
 
+    public function getCustomersCountAttribute(): int
+    {
+        return $this->customers()->count();
+    }
 }

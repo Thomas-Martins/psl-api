@@ -24,6 +24,7 @@ class StoreResource extends JsonResource
             'city' => $this->city,
             'zipcode' => $this->zipcode,
             'siret' => $this->siret,
+            'customers_count' => $this->customers_count,
         ];
     }
 }

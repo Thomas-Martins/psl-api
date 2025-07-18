@@ -28,6 +28,8 @@ class AuthController
         // Create tokens
         $token = $user->createToken('access_token')->accessToken;
 
+        $user->load('store');
+
         // Return access token
         return response()->json([
             'user' => $user,
@@ -35,5 +37,4 @@ class AuthController
             'token_type' => 'Bearer',
         ]);
     }
-
 }
