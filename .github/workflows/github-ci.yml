@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.4"
+          php-version: "8.3"
       - uses: actions/checkout@v4
       - name: Setup environment for testing
         run: cp .env.testing-ci .env
@@ -67,20 +67,14 @@ jobs:
     if: github.event_name == 'push' && needs.tests.result == 'success'
     steps:
       - name: Deploy to Server via SSH
-        # Pin to the latest stable tag (adjust when a newer one is released)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Se déplace dans le dossier du projet sur le serveur
             cd /root/psl-solutions-api # <-- ADAPTE LE CHEMIN VERS TON PROJET
-
-            # Récupère la dernière version du code de la branche poussée
             git pull origin ${{ github.ref_name }}
-
-            # Relance docker-compose en forçant la reconstruction de l'image
             docker-compose -f docker-compose.prod.yml up -d --build
 
   notify-pr:
@@ -94,11 +88,13 @@ jobs:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
           STATUS: ${{ needs.tests.result }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           if [[ "$STATUS" == "success" ]]; then
-            MESSAGE="✅ **La PR de ${{ github.head_ref }} vers ${{ github.base_ref }} a passé les tests et est prête à être mergée !** 🎉"
+            MESSAGE="✅ **La PR de ${HEAD_REF} vers ${BASE_REF} a passé les tests et est prête à être mergée !** 🎉"
           else
-            MESSAGE="❌ **La PR de ${{ github.head_ref }} vers ${{ github.base_ref }} a échoué aux tests.** 🚨"
+            MESSAGE="❌ **La PR de ${HEAD_REF} vers ${BASE_REF} a échoué aux tests.** 🚨"
           fi
           curl -H "Authorization: Bot $DISCORD_BOT_TOKEN" -H "Content-Type: application/json" -X POST -d "{\"content\": \"$MESSAGE\"}" https://discord.com/api/v9/channels/$DISCORD_CHANNEL_ID/messages
 
