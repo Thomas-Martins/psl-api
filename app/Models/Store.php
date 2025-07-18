@@ -32,6 +32,6 @@ class Store extends Model
 
     public function getCustomersCountAttribute(): int
     {
-        return $this->customers()->count();
+        return $this->customers_count ?? $this->customers()->count();
     }
 }
