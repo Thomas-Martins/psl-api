@@ -74,7 +74,7 @@ jobs:
           script: |
             cd /root/psl-api
             git pull origin ${{ github.ref_name }}
-            docker-compose -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.prod.yml up -d --build
 
   notify-pr:
     name: Notify PR Status on Discord
