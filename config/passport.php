@@ -26,12 +26,18 @@ return [
     |
     */
 
-//    'private_key' => env('PASSPORT_PRIVATE_KEY'),
-//
-//    'public_key' => env('PASSPORT_PUBLIC_KEY'),
+    //    'private_key' => env('PASSPORT_PRIVATE_KEY'),
+    //
+    //    'public_key' => env('PASSPORT_PUBLIC_KEY'),
 
-    'private_key' => file_get_contents(storage_path('oauth-private.key')),
-    'public_key'  => file_get_contents(storage_path('oauth-public.key')),
+    'private_key' => file_exists(storage_path('oauth-private.key')) && filesize(storage_path('oauth-private.key')) > 0
+        ? file_get_contents(storage_path('oauth-private.key'))
+        : null,
+
+    'public_key' => file_exists(storage_path('oauth-public.key')) && filesize(storage_path('oauth-public.key')) > 0
+        ? file_get_contents(storage_path('oauth-public.key'))
+        : null,
+
 
 
     /*
