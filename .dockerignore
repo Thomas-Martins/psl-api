@@ -1,10 +1,12 @@
-/.env
-/.env.*
+.env
+.env.*
 /vendor/
 /node_modules/
 /public/build/
-!/storage/
-!/storage/**/*
+
+!storage
+!storage/**
+
 .git
 .gitignore
 .gitattributes
