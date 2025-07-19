@@ -10,8 +10,9 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}" # Variable pour la sécurité
+      - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--providers.docker.network=psl-network"
     ports:
       - "80:80"
       - "443:443"
@@ -19,8 +20,9 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./letsencrypt:/letsencrypt"
+    networks:
+      - psl-network
 
-  # === ENVIRONNEMENT DE DEV ===
   laravel-dev:
     build:
       context: .
@@ -34,8 +36,10 @@ services:
       - "traefik.http.routers.laravel-dev.rule=Host(`api.dev.psl-app.dev`)"
       - "traefik.http.routers.laravel-dev.entrypoints=websecure"
       - "traefik.http.routers.laravel-dev.tls.certresolver=letsencrypt"
+      - "traefik.docker.network=psl-network"
+    networks:
+      - psl-network
 
-  # === ENVIRONNEMENT DE PROD ===
   laravel-prod:
     build:
       context: .
@@ -49,3 +53,9 @@ services:
       - "traefik.http.routers.laravel-prod.rule=Host(`api.psl-app.dev`)"
       - "traefik.http.routers.laravel-prod.entrypoints=websecure"
       - "traefik.http.routers.laravel-prod.tls.certresolver=letsencrypt"
+      - "traefik.docker.network=psl-network"
+    networks:
+      - psl-network
+
+networks:
+  psl-network:
