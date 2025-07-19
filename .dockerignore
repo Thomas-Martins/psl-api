@@ -1,0 +1,13 @@
+/.env
+/.env.*
+/vendor/
+/node_modules/
+/public/build/
+!/storage/
+!/storage/**/*
+.git
+.gitignore
+.gitattributes
+docker-compose.yml
+docker-compose.prod.yml
+README.md
