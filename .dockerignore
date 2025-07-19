@@ -3,7 +3,8 @@
 /vendor/
 /node_modules/
 /public/build/
-/storage/
+!/storage/
+!/storage/**/*
 .git
 .gitignore
 .gitattributes
