@@ -14,9 +14,9 @@ FROM php:8.3-fpm-alpine
 WORKDIR /var/www/html
 RUN apk add --no-cache postgresql-dev
 RUN docker-php-ext-install pdo pdo_pgsql
-COPY --from=builder /var/www/html .
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
-  && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+COPY --from=builder /var/www/html /var/www/html
+RUN mkdir -p storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 RUN sed -i 's|listen = 127.0.0.1:9000|listen = 0.0.0.0:9000|' /usr/local/etc/php-fpm.d/www.conf
 EXPOSE 9000
 CMD ["php-fpm"]
