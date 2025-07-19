@@ -16,6 +16,9 @@ RUN php artisan config:cache \
 
 FROM php:8.3-fpm-alpine
 WORKDIR /var/www/html
+
+RUN apk add --no-cache postgresql-dev
+
 RUN docker-php-ext-install pdo pdo_pgsql
 COPY --from=builder /var/www/html .
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
