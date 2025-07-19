@@ -10,10 +10,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY . .
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-FROM php:8.3-fpm-alpine
+FROM php:8.3-fpm
 WORKDIR /var/www/html
-RUN apk add --no-cache postgresql-dev
-RUN docker-php-ext-install pdo pdo_pgsql
+RUN apt-get update && apt-get install -y libpq-dev \
+    && docker-php-ext-install pdo pdo_pgsql
 COPY --from=builder /var/www/html /var/www/html
 RUN mkdir -p storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
