@@ -1,26 +1,40 @@
 FROM php:8.3-fpm as builder
 WORKDIR /var/www/html
+
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libpq-dev \
     libzip-dev \
-    && docker-php-ext-install pdo pdo_pgsql zip
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libicu-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) pdo pdo_pgsql zip bcmath exif gd intl sockets
+
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY . .
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
 FROM php:8.3-fpm-alpine
 WORKDIR /var/www/html
-RUN apk add --no-cache postgresql-dev
-RUN docker-php-ext-install pdo pdo_pgsql
+
+RUN apk add --no-cache \
+    postgresql-dev \
+    libzip-dev \
+    libpng-dev \
+    jpeg-dev \
+    freetype-dev \
+    icu-dev \
+    linux-headers \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) pdo pdo_pgsql zip bcmath exif gd intl sockets
+
 COPY --from=builder /var/www/html .
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 RUN sed -i 's|listen = 127.0.0.1:9000|listen = 9000|g' /usr/local/etc/php-fpm.d/www.conf
-
-RUN sed -i 's|;log_level = notice|log_level = debug|g' /usr/local/etc/php-fpm.conf.d/docker.conf
-RUN sed -i 's|;access.log = log/$pool.access.log|access.log = /proc/self/fd/2|g' /usr/local/etc/php-fpm.d/www.conf
 
 EXPOSE 9000
 CMD ["php-fpm"]
