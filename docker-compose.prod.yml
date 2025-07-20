@@ -40,7 +40,8 @@ services:
       - "traefik.http.routers.laravel-dev.rule=Host(`api.dev.psl-app.dev`)"
       - "traefik.http.routers.laravel-dev.entrypoints=websecure"
       - "traefik.http.routers.laravel-dev.tls.certresolver=letsencrypt"
-      - "traefik.docker.network=psl-network"
+      - "traefik.http.routers.laravel-dev.service=laravel-dev-service"
+      - "traefik.http.services.laravel-dev-service.loadbalancer.server.port=9000"
     networks:
       - psl-network
 
@@ -61,7 +62,8 @@ services:
       - "traefik.http.routers.laravel-prod.rule=Host(`api.psl-app.dev`)"
       - "traefik.http.routers.laravel-prod.entrypoints=websecure"
       - "traefik.http.routers.laravel-prod.tls.certresolver=letsencrypt"
-      - "traefik.docker.network=psl-network"
+      - "traefik.http.routers.laravel-prod.service=laravel-prod-service"
+      - "traefik.http.services.laravel-prod-service.loadbalancer.server.port=9000"
     networks:
       - psl-network
 
