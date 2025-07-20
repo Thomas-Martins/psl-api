@@ -72,6 +72,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd /root/psl-api
             git pull origin ${{ github.ref_name }}
             docker compose -f docker-compose.prod.yml up -d --build
