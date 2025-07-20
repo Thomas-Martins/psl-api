@@ -19,7 +19,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-            Log::info('Handler called for unauthenticated request');
             return response()->json([
                 'message' => 'Unauthenticated.'
             ], 401);
