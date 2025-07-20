@@ -2,14 +2,7 @@ FROM php:8.3-fpm as builder
 WORKDIR /var/www/html
 
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libpq-dev \
-    libzip-dev \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    libicu-dev \
+    git unzip libpq-dev libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libicu-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo pdo_pgsql zip bcmath exif gd intl sockets
 
@@ -17,22 +10,21 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY . .
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-FROM php:8.3-fpm-alpine
+FROM php:8.3-fpm
+
 WORKDIR /var/www/html
 
-RUN apk add --no-cache \
-    postgresql-dev \
-    libzip-dev \
-    libpng-dev \
-    jpeg-dev \
-    freetype-dev \
-    icu-dev \
-    linux-headers \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libzip4 \
+    libpng16-16 \
+    libjpeg62-turbo \
+    libfreetype6 \
+    libicu72 \
     && docker-php-ext-install -j$(nproc) pdo pdo_pgsql zip bcmath exif gd intl sockets
 
 COPY --from=builder /var/www/html .
-RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
+RUN mkdir -p storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 RUN sed -i 's|listen = 127.0.0.1:9000|listen = 9000|g' /usr/local/etc/php-fpm.d/www.conf
 
