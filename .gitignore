@@ -1,24 +1,75 @@
-/.phpunit.cache
-/node_modules
-/public/build
-/public/hot
-/public/storage
+# Laravel
+/vendor
 /storage/*.key
 /storage/pail
-/vendor
+/storage/app/*
+!/storage/app/.gitignore
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/storage/app/private/*
+!/storage/app/private/.gitignore
+/storage/framework/*
+!/storage/framework/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+/bootstrap/cache/
+
+# Environnements
 .env
+.env.*
 .env.backup
 .env.production
 .env.testing
-.phpactor.json
+
+# Logs & caches
+*.log
+nohup.out
 .phpunit.result.cache
-Homestead.json
-Homestead.yaml
+/.phpunit.cache
+.phpunit.cache
+.phpactor.json
 npm-debug.log
 yarn-error.log
+
+# Public/build (vite, mix, react)
+/public/js
+/public/css
+/public/build
+/public/hot
+/public/storage
+/public/mix-manifest.json
+
+# Docker & CI/CD spécifiques
+letsencrypt/
+www.conf
+nginx.dev.conf
+nginx.prod.conf
+docker-compose.override.yml
+*.local.yml
+*.bak
+
+# Composer / Auth
 /auth.json
-/.fleet
+
+# IDE & tooling
+/.vscode
 /.idea
 /.nova
-/.vscode
 /.zed
+/.fleet
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Git hooks
+.git/hooks/*
