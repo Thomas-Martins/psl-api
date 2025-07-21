@@ -33,6 +33,7 @@ services:
     expose: ["9000"]
     volumes:
       - ./storage:/var/www/html/storage
+      - ./public:/var/www/html/public
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -47,6 +48,7 @@ services:
     volumes:
       - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
       - ./storage:/var/www/html/storage
+      - ./public:/var/www/html/public
     networks:
       - psl-network
     labels:
@@ -67,6 +69,7 @@ services:
     expose: ["9000"]
     volumes:
       - ./storage:/var/www/html/storage
+      - ./public:/var/www/html/public
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -81,6 +84,7 @@ services:
     volumes:
       - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
       - ./storage:/var/www/html/storage
+      - ./public:/var/www/html/public
     networks:
       - psl-network
     labels:
