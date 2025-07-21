@@ -34,13 +34,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request'
 
-    services:                       # ← NOUVEAU
+    services:
       pgsql:
         image: postgres:16
         env:
-          POSTGRES_DB:      testing
-          POSTGRES_USER:    sail
-          POSTGRES_PASSWORD:password
+          POSTGRES_DB: testing
+          POSTGRES_USER: sail
+          POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
         options: >-
@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
-        with: { php-version: '8.3' }
+        with: { php-version: "8.3" }
       - name: Setup environment for testing
         run: |
           cp .env.testing-ci .env
