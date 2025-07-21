@@ -104,6 +104,8 @@ jobs:
             git pull origin develop
             docker compose -f docker-compose.prod.yml up -d --build laravel-dev
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan migrate --force
+            docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan db:seed --class=RolesSeeder --force
+            docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan db:seed --class=UsersSeeder --force
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan passport:keys --force
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan optimize
 
@@ -125,6 +127,8 @@ jobs:
             git pull origin main
             docker compose -f docker-compose.prod.yml up -d --build laravel-prod
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan migrate --force
+            docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan db:seed --class=RolesSeeder --force
+            docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan db:seed --class=UsersSeeder --force
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan passport:keys --force
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan optimize
 
