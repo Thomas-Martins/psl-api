@@ -103,6 +103,7 @@ jobs:
             set -euo pipefail
             cd /root/psl-api
             git pull origin develop
+            mkdir -p public
             docker compose -f docker-compose.prod.yml up -d --build laravel-dev
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan migrate --force
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan storage:link
@@ -128,6 +129,7 @@ jobs:
             set -euo pipefail
             cd /root/psl-api
             git pull origin main
+            mkdir -p public
             docker compose -f docker-compose.prod.yml up -d --build laravel-prod
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan migrate --force
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan storage:link
