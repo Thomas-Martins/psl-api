@@ -55,6 +55,8 @@ jobs:
         run: php artisan config:clear
       - name: Debug .env
         run: cat .env
+      - name: Run migrations
+        run: php artisan migrate
       - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
         run: php artisan test
 
