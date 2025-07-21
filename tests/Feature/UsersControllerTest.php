@@ -155,9 +155,9 @@ class UsersControllerTest extends TestCase
                 'lastname' => 'Doe',
                 'firstname' => 'John',
                 'email' => 'john.doe@psl.fr',
-                'password' => 'password',
                 'role_id' => $this->userRole->id,
                 'phone' => '0123456789',
+                'locale' => 'en',
             ]);
 
         $response->assertStatus(201);
