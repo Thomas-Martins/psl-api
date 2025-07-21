@@ -53,6 +53,8 @@ jobs:
         run: php artisan passport:keys --force
       - name: Clear Laravel config cache
         run: php artisan config:clear
+      - name: Debug .env
+        run: cat .env
       - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
         run: php artisan test
 
