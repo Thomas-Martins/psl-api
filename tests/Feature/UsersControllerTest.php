@@ -160,7 +160,6 @@ class UsersControllerTest extends TestCase
                 'locale' => 'en',
             ]);
 
-        $response->dump();
         $response->assertStatus(201);
     }
 

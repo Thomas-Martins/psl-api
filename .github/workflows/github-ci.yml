@@ -54,6 +54,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with: { php-version: "8.3" }
+      - name: Ensure storage and cache directories exist
+        run: |
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p storage/logs
+          chmod -R 777 storage bootstrap/cache
       - name: Setup environment for testing
         run: |
           cp .env.testing-ci .env
