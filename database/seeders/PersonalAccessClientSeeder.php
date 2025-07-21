@@ -15,8 +15,7 @@ class PersonalAccessClientSeeder extends Seeder
      */
     public function run()
     {
-        // Vérifier si un client d'accès personnel existe déjà
-        if (! Client::where('personal_access_client', true)->exists()) {
+        if (! Client::whereRaw('personal_access_client IS TRUE')->exists()) {
             $clientRepository = app(ClientRepository::class);
 
             // Créer le client d'accès personnel

@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Passport\Client;
 use App\Models\Passport\Token;
 use App\Repositories\CustomTokenRepository;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 use Laravel\Passport\TokenRepository;
@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Passport::useTokenModel(Token::class);
+        Passport::useClientModel(Client::class);
         Passport::refreshTokensExpireIn(now()->addDays(30));
         Passport::personalAccessTokensExpireIn(now()->addMonths(6));
     }
