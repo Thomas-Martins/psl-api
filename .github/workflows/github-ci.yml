@@ -106,6 +106,7 @@ jobs:
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan migrate --force
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan db:seed --class=RolesSeeder --force
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan db:seed --class=UsersSeeder --force
+            docker compose -f docker-compose.prod.yml exec -T laravel-dev sh -c "php artisan passport:client --personal --no-interaction --name='Personal Access Client' || true"
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan passport:keys --force
             docker compose -f docker-compose.prod.yml exec -T laravel-dev php artisan optimize
 
@@ -129,6 +130,7 @@ jobs:
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan migrate --force
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan db:seed --class=RolesSeeder --force
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan db:seed --class=UsersSeeder --force
+            docker compose -f docker-compose.prod.yml exec -T laravel-prod sh -c "php artisan passport:client --personal --no-interaction --name='Personal Access Client' || true"
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan passport:keys --force
             docker compose -f docker-compose.prod.yml exec -T laravel-prod php artisan optimize
 
