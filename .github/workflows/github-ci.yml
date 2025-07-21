@@ -55,8 +55,7 @@ jobs:
         with: { php-version: '8.3' }
       - name: Setup environment for testing
         run: |
-          cp .env.testing-ci .env              # ton fichier
-          # s'assure que l'host pointe bien sur le service
+          cp .env.testing-ci .env
           sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
           sed -i 's/^DB_PORT=.*/DB_PORT=5432/' .env
       - name: Install dependencies
