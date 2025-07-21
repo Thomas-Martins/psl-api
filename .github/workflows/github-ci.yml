@@ -64,10 +64,14 @@ jobs:
         run: php artisan passport:keys --force
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..30}; do
+          for i in {1..60}; do
             pg_isready -h pgsql -U sail -d testing && break
             sleep 1
           done
+      - name: Debug .env
+        run: cat .env
+      - name: Clear Laravel config cache
+        run: php artisan config:clear
       - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
         run: php artisan test
 
