@@ -34,7 +34,7 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'phone' => ['sometimes', 'string', 'max:20'],
+            'phone' => ['sometimes', 'string', 'max:50'],
             'role_id' => ['sometimes', 'integer', 'exists:roles,id'],
         ];
     }

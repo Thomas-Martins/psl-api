@@ -25,7 +25,7 @@ class CreateCarriersRequest extends FormRequest
         return [
             'name' => 'required|string|max:255|unique:carriers',
             'email' => 'required|email|max:255|unique:carriers',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:50',
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'zipcode' => 'required|string|max:5',

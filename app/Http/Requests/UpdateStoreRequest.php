@@ -24,13 +24,13 @@ class UpdateStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [ 'sometimes', 'string', 'max:255', Rule::unique('stores', 'name')->ignore($this->route('store')) ],
-            'email' => [ 'sometimes', 'email', 'max:255', Rule::unique('stores','email')->ignore($this->route('store'))],
-            'phone' => [ 'sometimes', 'string', 'max:20'],
-            'address' => [ 'sometimes', 'string', 'max:255'],
-            'zipcode' => [ 'sometimes', 'string', 'max:5'],
-            'city' => [ 'sometimes', 'string', 'max:255'],
-            'siret' => [ 'sometimes', 'string', 'max:14'],
+            'name' => ['sometimes', 'string', 'max:255', Rule::unique('stores', 'name')->ignore($this->route('store'))],
+            'email' => ['sometimes', 'email', 'max:255', Rule::unique('stores', 'email')->ignore($this->route('store'))],
+            'phone' => ['sometimes', 'string', 'max:50'],
+            'address' => ['sometimes', 'string', 'max:255'],
+            'zipcode' => ['sometimes', 'string', 'max:5'],
+            'city' => ['sometimes', 'string', 'max:255'],
+            'siret' => ['sometimes', 'string', 'max:14'],
         ];
     }
 }

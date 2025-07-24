@@ -25,7 +25,7 @@ class CreateStoreRequest extends FormRequest
         return [
             'name' => 'required|string|max:255|unique:stores',
             'email' => 'required|email|max:255|unique:stores',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:50',
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'zipcode' => 'required|string|max:5',

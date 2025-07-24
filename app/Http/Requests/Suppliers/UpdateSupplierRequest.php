@@ -34,15 +34,15 @@ class UpdateSupplierRequest extends FormRequest
                 'max:255',
                 Rule::unique('suppliers')->ignore($this->route('supplier')->id)
             ],
-            'phone' => [ 'string', 'max:20'],
-            'address' => [ 'string', 'max:255'],
-            'zipcode' => [ 'string', 'max:5'],
-            'city' => [ 'string', 'max:255'],
-            'country' => [ 'string', 'max:255'],
-            'contact_person_firstname' => [ 'string', 'max:50'],
-            'contact_person_lastname' => [ 'string', 'max:50'],
-            'contact_person_phone' => [ 'string', 'max:20'],
-            'contact_person_email' => [ 'email', 'max:255'],
+            'phone' => ['string', 'max:50'],
+            'address' => ['string', 'max:255'],
+            'zipcode' => ['string', 'max:5'],
+            'city' => ['string', 'max:255'],
+            'country' => ['string', 'max:255'],
+            'contact_person_firstname' => ['string', 'max:50'],
+            'contact_person_lastname' => ['string', 'max:50'],
+            'contact_person_phone' => ['string', 'max:20'],
+            'contact_person_email' => ['email', 'max:255'],
         ];
     }
 }
