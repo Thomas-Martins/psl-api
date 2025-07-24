@@ -4,11 +4,18 @@ namespace App\Services;
 
 use App\Models\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\PdfService;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 class InvoiceService
 {
+    private PdfService $pdfService;
+
+    public function __construct(PdfService $pdfService)
+    {
+        $this->pdfService = $pdfService;
+    }
     /**
      * Generates the invoice PDF and returns it as a stream response
      */
@@ -62,7 +69,6 @@ class InvoiceService
      */
     private function generatePdf(Order $order, string $locale)
     {
-        // Ensure all required relations are loaded safely
         if (
             !$order->relationLoaded('ordersProducts') ||
             !$order->relationLoaded('user') ||
@@ -71,49 +77,9 @@ class InvoiceService
             $order->loadMissing(['ordersProducts.product', 'user.store']);
         }
 
-        // Set temporary locale for this request
-        $currentLocale = App::getLocale();
-
-        Log::info('Invoice service locale', [
-            'received_locale' => $locale,
-            'current_locale' => $currentLocale,
-            'order_id' => $order->id
-        ]);
-
-        // Ensure locale is valid and available
-        if (in_array($locale, ['en', 'fr'])) {
-            App::setLocale($locale);
-            Log::info('Setting locale to: ' . $locale);
-        } else {
-            Log::warning('Invalid locale: ' . $locale . ', using default: ' . $currentLocale);
-        }
-
-        try {
-            // Specific PDF configuration
-            $pdf = PDF::loadView('invoices.show', [
-                'order' => $order,
-                'locale' => $locale ?? $currentLocale
-            ]);
-
-            // Options to improve quality and compatibility
-            $pdf->setPaper('a4');
-            $pdf->setOption('isHtml5ParserEnabled', true);
-            $pdf->setOption('isPhpEnabled', true);
-        } catch (\Exception $e) {
-            Log::error('PDF generation failed', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw new \RuntimeException('Failed to generate invoice PDF: ' . $e->getMessage(), 0, $e);
-        } finally {
-            // Restore original locale
-            if (in_array($locale, ['en', 'fr'])) {
-                App::setLocale($currentLocale);
-            }
-        }
-
-        return $pdf;
+        return $this->pdfService->generatePdfFromView('invoices.show', [
+            'order' => $order,
+            'locale' => $locale
+        ], $locale);
     }
-
 }

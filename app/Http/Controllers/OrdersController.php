@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
 use App\Services\InvoiceService;
+use App\Services\OrderDocumentService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,8 @@ use Illuminate\Support\Facades\Log;
 class OrdersController
 {
     public function __construct(
-        private InvoiceService $invoiceService
+        private InvoiceService $invoiceService,
+        private OrderDocumentService $orderDocumentService
     ) {}
 
     /**
@@ -35,7 +37,7 @@ class OrdersController
 
         if (! empty($validated['user_id'])) {
             $ordersQuery->where('user_id', $validated['user_id']);
-        }else {
+        } else {
             $ordersQuery->with('user.store');
         }
 
@@ -157,7 +159,6 @@ class OrdersController
                 'message' => 'Order created successfully',
                 'data'    => $order->load('ordersProducts'),
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Order creation failed: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
@@ -178,7 +179,7 @@ class OrdersController
      */
     public function show(Order $order)
     {
-        if(!$order->exists) {
+        if (!$order->exists) {
             return response()->json([
                 'message' => 'Order not found',
             ], 404);
@@ -198,8 +199,10 @@ class OrdersController
      */
     public function update(Request $request, Order $order)
     {
-        if (Auth::user()->role !== Role::ADMIN &&
-            Auth::user()->role !== Role::GESTIONNAIRE) {
+        if (
+            Auth::user()->role !== Role::ADMIN &&
+            Auth::user()->role !== Role::GESTIONNAIRE
+        ) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
@@ -227,9 +230,12 @@ class OrdersController
 
     public function downloadInvoice(Request $request, Order $order)
     {
-        if ($order->user_id !== Auth::user()->id &&
+        if (
+            $order->user_id !== Auth::user()->id &&
             Auth::user()->role !== Role::ADMIN &&
-            Auth::user()->role !== Role::GESTIONNAIRE) {
+            Auth::user()->role !== Role::GESTIONNAIRE &&
+            Auth::user()->role !== Role::LOGISTICIEN
+        ) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
@@ -247,6 +253,37 @@ class OrdersController
             ]);
             return response()->json([
                 'message' => 'Failed to generate invoice',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    public function downloadProductsList(Request $request, Order $order)
+    {
+        if (
+            $order->user_id !== Auth::user()->id &&
+            Auth::user()->role !== Role::ADMIN &&
+            Auth::user()->role !== Role::GESTIONNAIRE &&
+            Auth::user()->role !== Role::LOGISTICIEN
+        ) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $order->load(['ordersProducts.product', 'user.store']);
+
+        $locale = $request->input('locale') ?? $request->query('locale') ?? $request->header('Accept-Language');
+
+        try {
+            return $this->orderDocumentService->generateProductsListDownload($order, $locale);
+        } catch (\Exception $e) {
+            Log::error('Products list download failed', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json([
+                'message' => 'Failed to generate products list',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
