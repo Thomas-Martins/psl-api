@@ -233,7 +233,8 @@ class OrdersController
         if (
             $order->user_id !== Auth::user()->id &&
             Auth::user()->role !== Role::ADMIN &&
-            Auth::user()->role !== Role::GESTIONNAIRE
+            Auth::user()->role !== Role::GESTIONNAIRE &&
+            Auth::user()->role !== Role::LOGISTICIEN
         ) {
             return response()->json([
                 'message' => 'Unauthorized',
@@ -257,12 +258,13 @@ class OrdersController
         }
     }
 
-    public function downloadProductsList(Order $order)
+    public function downloadProductsList(Request $request, Order $order)
     {
         if (
             $order->user_id !== Auth::user()->id &&
             Auth::user()->role !== Role::ADMIN &&
-            Auth::user()->role !== Role::GESTIONNAIRE
+            Auth::user()->role !== Role::GESTIONNAIRE &&
+            Auth::user()->role !== Role::LOGISTICIEN
         ) {
             return response()->json([
                 'message' => 'Unauthorized',
@@ -271,7 +273,7 @@ class OrdersController
 
         $order->load(['ordersProducts.product', 'user.store']);
 
-        $locale = request()->input('locale') ?? request()->query('locale') ?? request()->header('Accept-Language');
+        $locale = $request->input('locale') ?? $request->query('locale') ?? $request->header('Accept-Language');
 
         try {
             return $this->orderDocumentService->generateProductsListDownload($order, $locale);
