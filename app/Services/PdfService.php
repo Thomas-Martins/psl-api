@@ -19,7 +19,6 @@ class PdfService
             $pdf = Pdf::loadView($view, $data);
             $pdf->setPaper('a4');
             $pdf->setOption('isHtml5ParserEnabled', true);
-            $pdf->setOption('isPhpEnabled', true);
         } catch (\Exception $e) {
             Log::error('PDF generation failed', [
                 'view' => $view,

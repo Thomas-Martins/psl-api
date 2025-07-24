@@ -32,8 +32,8 @@
 <body>
     <h2>{{ __('products_list.file_prefix') }} - {{ $order->reference }}</h2>
     <p><strong>{{ __('order.store') }}:</strong> {{ $order->user->store->address ?? '-' }}<br>
-        <strong>{{ __('order.city') }}:</strong> {{ $order->user->store->city ?? '-' }}<br>
-        <strong>{{ __('order.zipcode') }}:</strong> {{ $order->user->store->zipcode ?? '-' }}
+        <strong>{{ __('order.city') }}:</strong> {{ $order->user?->store?->city ?? '-' }}<br>
+        <strong>{{ __('order.zipcode') }}:</strong> {{ $order->user?->store?->zipcode ?? '-' }}
     </p>
     <table>
         <thead>
@@ -46,9 +46,9 @@
         <tbody>
             @foreach($order->ordersProducts as $op)
             <tr>
-                <td>{{ $op->product->name }}</td>
+                <td>{{ $op->product?->name ?? '-' }}</td>
                 <td>{{ $op->quantity }}</td>
-                <td>{{ $op->product->location ?? '-' }}</td>
+                <td>{{ $op->product?->location ?? '-' }}</td>
             </tr>
             @endforeach
         </tbody>

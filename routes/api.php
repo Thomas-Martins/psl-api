@@ -67,4 +67,8 @@ Route::group(['middleware' => ['auth:api']], function () {
         //STORES
         Route::apiResource('/stores', StoreController::class);
     });
+
+    Route::group(['middleware' => ['roles:admin,gestionnaire,logisticien']], function () {
+        Route::get('/orders/{order}/products-list', [OrdersController::class, 'downloadProductsList']);
+    });
 });
