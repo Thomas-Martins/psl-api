@@ -13,7 +13,7 @@ use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
 // Authenticated routes
 Route::group(['middleware' => ['auth:api']], function () {
@@ -45,7 +45,6 @@ Route::group(['middleware' => ['auth:api']], function () {
 
         //ROLES
         Route::apiResource('/roles', RolesController::class);
-
     });
 
     //Admin and Gestionnaire routes
@@ -67,6 +66,5 @@ Route::group(['middleware' => ['auth:api']], function () {
 
         //STORES
         Route::apiResource('/stores', StoreController::class);
-
     });
 });
