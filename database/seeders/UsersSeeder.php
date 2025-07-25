@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Role;
 use App\Models\Store;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -21,13 +20,16 @@ class UsersSeeder extends Seeder
         $roleIds = Role::pluck('id')->toArray();
 
         // Récupère les stores existants
-        $storeIds = \App\Models\Store::pluck('id')->toArray();
+        $storeIds = Store::pluck('id')->toArray();
+        if (empty($storeIds)) {
+            $this->command->warn('No stores found in database. Client users will be created without store association.');
+        }
 
         // 5 clients liés à un store aléatoire
         User::factory(5)->create([
             'role_id' => $roleClient ? $roleClient->id : 4,
             'store_id' => function () use ($storeIds) {
-                return $storeIds[array_rand($storeIds)];
+                return !empty($storeIds) ? $storeIds[array_rand($storeIds)] : null;
             },
         ]);
         // 5 admins sans store
