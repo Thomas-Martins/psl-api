@@ -20,12 +20,20 @@ class UsersSeeder extends Seeder
         $roleClient = Role::where('name', Role::CLIENT)->first();
         $roleIds = Role::pluck('id')->toArray();
 
-        // 10 utilisateurs dont 5 clients
+        // Récupère les stores existants
+        $storeIds = \App\Models\Store::pluck('id')->toArray();
+
+        // 5 clients liés à un store aléatoire
         User::factory(5)->create([
             'role_id' => $roleClient ? $roleClient->id : 4,
+            'store_id' => function () use ($storeIds) {
+                return $storeIds[array_rand($storeIds)];
+            },
         ]);
+        // 5 admins sans store
         User::factory(5)->create([
             'role_id' => $roleAdmin ? $roleAdmin->id : 1,
+            'store_id' => null,
         ]);
 
         // Comptes spécifiques
@@ -60,6 +68,7 @@ class UsersSeeder extends Seeder
                 'role_id' => $roleClient ? $roleClient->id : 4,
                 'phone' => '0606060608',
                 'remember_token' => Str::random(10),
+                'store_id' => $storeIds ? $storeIds[array_rand($storeIds)] : null,
             ]
         );
     }
