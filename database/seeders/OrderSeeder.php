@@ -12,11 +12,20 @@ class OrderSeeder extends Seeder
 {
     public function run()
     {
-        $products = Product::all();
-
+        // Charge uniquement les champs nécessaires
+        $products = Product::query()->select('id', 'price')->get();
+        if ($products->isEmpty()) {
+            $this->command?->warn('No products found. Skipping order-product attachments.');
+            return;
+        }
 
         Order::factory(20)->create()->each(function ($order) use ($products) {
-            $productsForOrder = $products->random(rand(1, 5));
+            $max = min(5, $products->count());
+            if ($max === 0) {
+                return;
+            }
+            $count = random_int(1, $max);
+            $productsForOrder = $products->random($count);
             foreach ($productsForOrder as $product) {
                 OrdersProduct::create([
                     'order_id' => $order->id,
@@ -25,6 +34,10 @@ class OrderSeeder extends Seeder
                     'freeze_price' => $product->price,
                 ]);
             }
+            // Recalcule et persiste le total_price basé sur les produits associés
+            $order->update([
+                'total_price' => $order->calculateTotal(),
+            ]);
         });
     }
 }
