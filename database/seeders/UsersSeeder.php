@@ -51,6 +51,18 @@ class UsersSeeder extends Seeder
             ]
         );
         User::firstOrCreate(
+            ['email' => 'thomas@example.fr'],
+            [
+                'firstname' => 'Thomas',
+                'lastname' => 'Martins',
+                'password' => bcrypt('password'),
+                'role_id' => $roleClient ? $roleClient->id : 4,
+                'phone' => '0606060606',
+                'remember_token' => Str::random(10),
+                'store_id' => $storeIds ? $storeIds[array_rand($storeIds)] : null,
+            ]
+        );
+        User::firstOrCreate(
             ['email' => 'gilles@psl.fr'],
             [
                 'firstname' => 'Gilles',

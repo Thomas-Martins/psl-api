@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\App;
 
 class Order extends Model
 {
+    use HasFactory;
 
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
@@ -79,7 +81,7 @@ class Order extends Model
 
         return round(
             $this->ordersProducts->reduce(
-                fn (float $sum, $item) => $sum + ((float) $item->freeze_price) * (int) $item->quantity,
+                fn(float $sum, $item) => $sum + ((float) $item->freeze_price) * (int) $item->quantity,
                 0.0
             ),
             2
