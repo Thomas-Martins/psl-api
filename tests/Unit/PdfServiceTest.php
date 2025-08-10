@@ -8,48 +8,32 @@ use Mockery;
 
 class PdfServiceTest extends TestCase
 {
-    public function test_generate_pdf_from_view_returns_pdf_object()
+    public function test_generate_pdf_from_view_mocks_pdf_facade_and_resets_locale()
     {
+        // Arrange
         $service = new PdfService();
-        $order = new class {
-            public $reference = 'ORD-1234';
-            public $created_at;
-            public $user;
-            public $ordersProducts = [];
-            const TAX_RATE = 0.2;
-            public function __construct()
-            {
-                $this->created_at = now();
-                $this->user = new class {
-                    public $identity = 'JD123';
-                    public $firstname = 'John';
-                    public $lastname = 'Doe';
-                    public $email = 'john@example.com';
-                    public $phone = '0601020304';
-                    public $store;
-                    public function __construct()
-                    {
-                        $this->store = new class {
-                            public $name = 'Test Store';
-                            public $full_address = '123 Main St';
-                        };
-                    }
-                };
-            }
-            public function calculateSubtotal()
-            {
-                return 100.0;
-            }
-            public function calculateTax()
-            {
-                return 20.0;
-            }
-            public function calculateTotal()
-            {
-                return 120.0;
-            }
-        };
-        $pdf = $service->generatePdfFromView('invoices.show', ['order' => $order, 'locale' => 'fr'], 'fr');
-        $this->assertNotNull($pdf);
+        $order = Mockery::mock();
+        $view = 'invoices.show';
+        $data = ['order' => $order, 'locale' => 'fr'];
+        $locale = 'fr';
+        $originalLocale = app()->getLocale();
+
+        // Mock the PDF facade (or the underlying generator)
+        $pdfMock = Mockery::mock();
+        $pdfMock->shouldReceive('loadView')->andReturnSelf();
+        $pdfMock->shouldReceive('setPaper')->with('a4')->andReturnSelf();
+        $pdfMock->shouldReceive('setOption')->with('isHtml5ParserEnabled', true)->andReturnSelf();
+        $pdfMock->shouldReceive('download')->andReturn('fake-pdf-content');
+
+        // Swap the facade in the container
+        app()->instance('dompdf.wrapper', $pdfMock);
+
+        // Act
+        $pdf = $service->generatePdfFromView($view, $data, $locale);
+        $result = $pdf->download();
+
+        // Assert
+        $this->assertEquals('fake-pdf-content', $result);
+        $this->assertEquals($originalLocale, app()->getLocale(), 'Locale should be reset after PDF generation');
     }
 }

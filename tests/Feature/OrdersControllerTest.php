@@ -65,9 +65,19 @@ class OrdersControllerTest extends TestCase
         /** @var \App\Models\User $user */
         $user = User::factory()->create(['role_id' => $this->userRole->id]);
         $this->actingAs($user, 'api');
-        $response = $this->getJson('/api/orders');
+        $response = $this->getJson(route('orders.index'), ['paginate' => true]);
         $response->assertStatus(200);
     }
+
+    /**
+     * Test that the orders index endpoint requires authentication.
+     */
+    public function test_index_requires_authentication()
+    {
+        $response = $this->getJson(route('orders.index'));
+        $response->assertStatus(401);
+    }
+
 
     /**
      * Test that an authenticated user can view the details of their order.
@@ -123,6 +133,25 @@ class OrdersControllerTest extends TestCase
         $response = $this->postJson('/api/orders', $payload);
         $response->assertStatus(201)
             ->assertJsonStructure(['message', 'data']);
+
+        // Get the created order ID from response
+        $orderId = $response->json('data.id') ?? $response->json('data')['id'] ?? null;
+        $this->assertNotNull($orderId, 'Order ID should be present in response');
+
+        // Assert order exists in DB with correct total_price
+        $expectedTotal = $product->price * 2;
+        $this->assertDatabaseHas('orders', [
+            'id' => $orderId,
+            'total_price' => $expectedTotal,
+        ]);
+
+        // Assert order-product exists in DB with correct freeze_price
+        $this->assertDatabaseHas('orders_products', [
+            'order_id' => $orderId,
+            'product_id' => $product->id,
+            'freeze_price' => $product->price,
+            'quantity' => 2,
+        ]);
     }
 
     /**
@@ -146,6 +175,12 @@ class OrdersControllerTest extends TestCase
         $response = $this->putJson("/api/orders/{$order->id}", $payload);
         $response->assertStatus(200)
             ->assertJsonFragment(['message' => 'Order updated successfully']);
+
+        // Assert the order's status is updated in the database
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => Order::STATUS_COMPLETED,
+        ]);
     }
 
     /**
