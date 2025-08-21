@@ -15,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Orders\CreateOrderRequest;
+use App\Models\Carrier;
 use Illuminate\Support\Facades\Log;
 
 class OrdersController
@@ -106,9 +107,11 @@ class OrdersController
                 $totalHt = collect($request->validated()['products'])
                     ->sum(fn($item) => $item['price'] * $item['quantity']);
 
+                $randomCarrierId = Carrier::inRandomOrder()->value('id');
+
                 $order = Order::create([
                     'user_id'                 => $user->id,
-                    'carrier_id'              => null,
+                    'carrier_id'              => $randomCarrierId,
                     'status'                  => Order::STATUS_PENDING,
                     'estimated_delivery_date' => null,
                     'departure_date'          => null,
@@ -211,6 +214,21 @@ class OrdersController
         $validated = $request->validate([
             'status' => 'required|in:' . implode(',', Order::STATUS_VALUES),
         ]);
+
+        $oldStatus = $order->status;
+        $newStatus = $validated['status'];
+
+
+        if (
+            $oldStatus === Order::STATUS_PENDING &&
+            ($newStatus === Order::STATUS_PROCESSING || $newStatus === Order::STATUS_COMPLETED || $newStatus === Order::STATUS_SHIPPED)
+        ) {
+            $order->estimated_delivery_date = now()->addWeek();
+        }
+
+        if ($oldStatus === Order::STATUS_PROCESSING && $newStatus === Order::STATUS_PENDING) {
+            $order->estimated_delivery_date = null;
+        }
 
         $order->update($validated);
 
