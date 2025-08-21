@@ -15,7 +15,8 @@ class OrderResource extends JsonResource
             'total_price'             => $this->total_price,
             'notes'                   => $this->notes,
             'created_at'              => $this->created_at,
-            'products'                => $this->ordersProducts->map(function($op) {
+            'estimated_delivery_date' => $this->estimated_delivery_date,
+            'products'                => $this->ordersProducts->map(function ($op) {
                 return [
                     'id'           => $op->product->id,
                     'name'         => $op->product->name,
